@@ -1,0 +1,7 @@
+*.tgz
+tmp/
+.helm/
+*.log
+.DS_Store
+node_modules/
+vault-init.txt

@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gitlab.fullname" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "gitlab.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "gitlab.fullname" . }}
+    spec:
+      containers:
+      - name: gitlab
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 80
+        env:
+        - name: GITLAB_OMNIBUS_CONFIG
+          value: |
+            external_url 'http://{{ include "gitlab.fullname" . }}'
+            postgresql['enable'] = false
+            gitlab_rails['db_adapter'] = 'postgresql'
+            gitlab_rails['db_host'] = '{{ .Values.global.psql.host }}'
+            gitlab_rails['db_port'] = {{ .Values.global.psql.port }}
+            gitlab_rails['db_database'] = '{{ .Values.global.psql.database }}'
+            gitlab_rails['db_username'] = '{{ .Values.global.psql.username }}'
+            gitlab_rails['db_password'] = {{ .Values.global.psql.password.secret | quote }}
+        resources: {{ toYaml .Values.resources | nindent 12 }}

@@ -1,0 +1,23 @@
+image:
+  repository: gitlab/gitlab-ce
+  tag: "latest"
+  pullPolicy: IfNotPresent
+service:
+  type: LoadBalancer
+  port: 80
+global:
+  psql:
+    host: "{{ .Release.Name }}-postgres"
+    port: 5432
+    database: "mydb"
+    username: "postgres"
+    password:
+      secret: "{{ .Release.Name }}-postgres-secret"
+      key: "password"
+resources:
+  limits:
+    cpu: "2"
+    memory: "4Gi"
+  requests:
+    cpu: "1"
+    memory: "2Gi"

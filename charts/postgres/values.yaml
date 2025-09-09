@@ -1,0 +1,23 @@
+replicaCount: 1
+image:
+  repository: postgres
+  tag: "16-alpine"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 5432
+persistence:
+  enabled: true
+  size: 10Gi
+postgres:
+  username: postgres
+  database: mydb
+vault:
+  enabled: false
+resources:
+  limits:
+    cpu: "1"
+    memory: "2Gi"
+  requests:
+    cpu: "500m"
+    memory: "1Gi"

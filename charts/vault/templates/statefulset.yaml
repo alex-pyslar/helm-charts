@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "vault.fullname" . }}
+spec:
+  replicas: {{ .Values.server.ha.enabled | ternary 3 1 }}
+  serviceName: {{ include "vault.fullname" . }}
+  selector:
+    matchLabels:
+      app: {{ include "vault.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "vault.fullname" . }}
+    spec:
+      containers:
+      - name: vault
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        args:
+        - "server"
+        ports:
+        - containerPort: 8200
+        env:
+        - name: VAULT_LOCAL_CONFIG
+          value: |
+            ui = true
+            storage "file" {
+              path = "/vault/data"
+            }
+            listener "tcp" {
+              address = "0.0.0.0:8200"
+              tls_disable = 1
+            }
+        volumeMounts:
+        - name: data
+          mountPath: /vault/data
+        resources: {{ toYaml .Values.resources | nindent 12 }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: {{ .Values.server.storage.size }}

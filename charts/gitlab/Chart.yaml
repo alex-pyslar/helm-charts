@@ -1,0 +1,5 @@
+apiVersion: v2
+name: gitlab
+description: Custom GitLab CE chart for K8s
+version: 0.1.0
+appVersion: "latest"

@@ -1,0 +1,9 @@
+global:
+  psql:
+    host: "{{ .Release.Name }}-postgres"
+    port: 5432
+    database: "mydb"
+    username: "postgres"
+    password:
+      secret: "{{ .Release.Name }}-postgres-secret"
+      key: "password"
