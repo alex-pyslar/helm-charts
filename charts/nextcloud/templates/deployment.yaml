@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nextcloud.fullname" . }}
+  {{- if .Values.vault.enabled }}
+  annotations:
+    vault.hashicorp.com/agent-inject: "true"
+    vault.hashicorp.com/role: "nextcloud-role"
+    vault.hashicorp.com/secret-volume-path: "/secrets"
+    vault.hashicorp.com/secret-name: "secret/nextcloud"
+  {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "nextcloud.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "nextcloud.fullname" . }}
+    spec:
+      initContainers:
+      - name: init-db
+        image: "postgres:16-alpine"
+        command: ["sh", "-c"]
+        args:
+          - |
+            psql -h {{ .Values.postgres.host }} -p {{ .Values.postgres.port }} -U postgres -c "CREATE USER {{ .Values.postgres.user }} WITH PASSWORD '${POSTGRES_PASSWORD}';" || true
+            psql -h {{ .Values.postgres.host }} -p {{ .Values.postgres.port }} -U postgres -c "CREATE DATABASE {{ .Values.postgres.database }} OWNER {{ .Values.postgres.user }};" || true
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.postgres.passwordSecret }}
+              key: password
+      containers:
+      - name: nextcloud
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 80
+        env:
+        - name: POSTGRES_HOST
+          value: {{ .Values.postgres.host }}
+        - name: POSTGRES_PORT
+          value: "{{ .Values.postgres.port }}"
+        - name: POSTGRES_DB
+          value: {{ .Values.postgres.database }}
+        - name: POSTGRES_USER
+          value: {{ .Values.postgres.user }}
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.postgres.passwordSecret }}
+              key: password
+        - name: REDIS_HOST
+          value: {{ .Values.redis.host }}
+        - name: REDIS_HOST_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.redis.passwordSecret }}
+              key: password
+        - name: NEXTCLOUD_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "nextcloud.fullname" . }}-secret
+              key: adminUser
+        - name: NEXTCLOUD_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "nextcloud.fullname" . }}-secret
+              key: adminPassword
+        - name: NEXTCLOUD_TRUSTED_DOMAINS
+          value: {{ .Values.nextcloud.trustedDomains }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/www/html
+        resources: {{ toYaml .Values.resources | nindent 12 }}
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 60
+          periodSeconds: 10
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: {{ include "nextcloud.fullname" . }}-pvc

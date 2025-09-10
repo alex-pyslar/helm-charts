@@ -1,0 +1,5 @@
+apiVersion: v2
+name: nextcloud
+description: Custom Nextcloud chart for K8s with Postgres and Redis
+version: 0.1.0
+appVersion: "apache"

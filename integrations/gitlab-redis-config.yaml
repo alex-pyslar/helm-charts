@@ -1,0 +1,7 @@
+global:
+  redis:
+    host: "{{ .Release.Name }}-redis"
+    port: 6379
+    password:
+      secret: "{{ .Release.Name }}-redis-secret"
+      key: "password"

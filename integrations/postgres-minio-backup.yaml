@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{ include \"postgres.fullname\" . }}-backup"
+spec:
+  schedule: "0 0 * * *"  # Daily at midnight
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: pgbackrest
+            image: pgbackrest/pgbackrest:2.53
+            env:
+            - name: PGBACKREST_STANZA
+              value: "db"
+            - name: PGBACKREST_REPO1_TYPE
+              value: "s3"
+            - name: PGBACKREST_REPO1_S3_ENDPOINT
+              value: "{{ .Release.Name }}-minio:9000"
+            - name: PGBACKREST_REPO1_S3_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Release.Name }}-minio-secret"
+                  key: accessKey
+            - name: PGBACKREST_REPO1_S3_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: "{{ .Release.Name }}-minio-secret"
+                  key: secretKey
+            volumeMounts:
+            - name: data
+              mountPath: /pgdata
+          volumes:
+          - name: data
+            persistentVolumeClaim:
+              claimName: "{{ include \"postgres.fullname\" . }}-pvc"
