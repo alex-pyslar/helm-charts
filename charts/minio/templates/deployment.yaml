@@ -1,47 +1,59 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: {{ include "redis.fullname" . }}
-  {{- if .Values.vault.enabled }}
-  annotations:
-    vault.hashicorp.com/agent-inject: "true"
-    vault.hashicorp.com/role: "redis-role"
-    vault.hashicorp.com/secret-volume-path: "/secrets"
-    vault.hashicorp.com/secret-name: "secret/redis"
-  {{- end }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: {{ include "redis.fullname" . }}
-  template:
-    metadata:
-      labels:
-        app: {{ include "redis.fullname" . }}
-    spec:
-      containers:
-      - name: redis
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        ports:
-        - containerPort: 6379
-        {{- if not .Values.vault.enabled }}
-        env:
-        - name: REDIS_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ include "redis.fullname" . }}-secret
-              key: password
-        {{- end }}
-        volumeMounts:
-        - name: data
-          mountPath: /data
-        resources: {{ toYaml .Values.resources | nindent 12 }}
-        livenessProbe:
-          tcpSocket:
-            port: 6379
-          initialDelaySeconds: 30
-          periodSeconds: 10
-      volumes:
-      - name: data
-        persistentVolumeClaim:
-          claimName: {{ include "redis.fullname" . }}-pvc
+   apiVersion: apps/v1
+   kind: Deployment
+   metadata:
+     name: {{ include "minio.fullname" . }}
+     {{- if .Values.vault.enabled }}
+     annotations:
+       vault.hashicorp.com/agent-inject: "true"
+       vault.hashicorp.com/role: "minio-role"
+       vault.hashicorp.com/secret-volume-path: "/secrets"
+       vault.hashicorp.com/secret-name: "secret/minio"
+     {{- end }}
+   spec:
+     replicas: 1
+     selector:
+       matchLabels:
+         app: {{ include "minio.fullname" . }}
+     template:
+       metadata:
+         labels:
+           app: {{ include "minio.fullname" . }}
+       spec:
+         containers:
+         - name: minio
+           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+           args:
+           - server
+           - /data
+           - --console-address
+           - ":9001"
+           ports:
+           - containerPort: 9000
+           - containerPort: 9001
+           env:
+           {{- if not .Values.vault.enabled }}
+           - name: MINIO_ROOT_USER
+             valueFrom:
+               secretKeyRef:
+                 name: {{ include "minio.fullname" . }}-secret
+                 key: accessKey
+           - name: MINIO_ROOT_PASSWORD
+             valueFrom:
+               secretKeyRef:
+                 name: {{ include "minio.fullname" . }}-secret
+                 key: secretKey
+           {{- end }}
+           volumeMounts:
+           - name: data
+             mountPath: /data
+           resources: {{ toYaml .Values.resources | nindent 12 }}
+           livenessProbe:
+             httpGet:
+               path: /minio/health/live
+               port: 9000
+             initialDelaySeconds: 30
+             periodSeconds: 10
+         volumes:
+         - name: data
+           persistentVolumeClaim:
+             claimName: {{ include "minio.fullname" . }}-pvc
