@@ -1,13 +1,12 @@
-#!/bin/bash
-set -e
+   #!/bin/bash
+   export NAMESPACE=${NAMESPACE:-default}
+   export RELEASE_VAULT=vault
+   export RELEASE_POSTGRES=postgres
+   export RELEASE_GITLAB=gitlab
+   export CHARTS_DIR="$(dirname "$0")/../charts"
 
-check_tools() {
-    command -v helm >/dev/null 2>&1 || { echo "Helm not installed!"; exit 1; }
-    command -v kubectl >/dev/null 2>&1 || { echo "Kubectl not installed!"; exit 1; }
-}
-
-NAMESPACE=${NAMESPACE:-default}
-RELEASE_VAULT="vault"
-RELEASE_POSTGRES="postgres"
-RELEASE_GITLAB="gitlab"
-CHARTS_DIR="./charts"
+   check_tools() {
+       command -v kubectl >/dev/null 2>&1 || { echo "kubectl is required"; exit 1; }
+       command -v helm >/dev/null 2>&1 || { echo "helm is required"; exit 1; }
+       echo "Tools check passed!"
+   }
