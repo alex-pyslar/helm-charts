@@ -1,5 +1,0 @@
-apiVersion: v2
-name: vault
-description: Custom Vault chart for K8s
-version: 0.1.0
-appVersion: "1.15"

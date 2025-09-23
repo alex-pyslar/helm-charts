@@ -1,5 +1,0 @@
-apiVersion: v2
-name: minio
-description: Custom MinIO chart for object storage
-version: 0.1.0
-appVersion: "RELEASE.2025-09-05T22-47-19Z"

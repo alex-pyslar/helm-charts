@@ -1,6 +1,0 @@
-metadata:
-  annotations:
-    vault.hashicorp.com/agent-inject: "true"
-    vault.hashicorp.com/role: "db-role"
-    vault.hashicorp.com/secret-volume-path: "/secrets"
-    vault.hashicorp.com/secret-name: "secret/postgres"
