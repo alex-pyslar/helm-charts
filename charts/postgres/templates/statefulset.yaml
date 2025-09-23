@@ -49,13 +49,15 @@ spec:
         readinessProbe:
           exec:
             command: ["pg_isready", "-U", "{{ .Values.postgres.username }}"]
-          initialDelaySeconds: 5
+          initialDelaySeconds: 30
           periodSeconds: 5
+          timeoutSeconds: 5
   volumeClaimTemplates:
   - metadata:
       name: data
     spec:
       accessModes: ["ReadWriteOnce"]
+      storageClassName: local-path  # Явно указываем local-path
       resources:
         requests:
           storage: {{ .Values.persistence.size }}
