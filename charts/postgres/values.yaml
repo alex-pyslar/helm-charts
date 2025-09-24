@@ -4,7 +4,7 @@ postgres:
   port: 5432
   username: postgres
   password: supersecret  # Измените в продакшене!
-  database: postgres
+  database: mydb
 
 # pgAdmin
 pgadmin:
@@ -25,5 +25,13 @@ service:
   postgresNodePort: 30001
   pgadminNodePort: 30002
   metricsNodePort: 30003
+
+# Persistence for PostgreSQL
+persistence:
+  enabled: true
+  storageClass: local-storage
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
 
 resources: {}  # Добавьте лимиты CPU/Memory, если нужно
