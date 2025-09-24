@@ -1,24 +1,29 @@
-replicaCount: 1
-image:
-  repository: postgres
-  tag: "16-alpine"
-  pullPolicy: IfNotPresent
-service:
-  type: ClusterIP
-  port: 5432
-persistence:
-  enabled: true
-  size: 10Gi
-  storageClass: local-path
+# PostgreSQL
 postgres:
+  image: postgres:16
+  port: 5432
   username: postgres
-  database: mydb
-vault:
-  enabled: false
-resources:
-  limits:
-    cpu: "1"
-    memory: "2Gi"
-  requests:
-    cpu: "500m"
-    memory: "1Gi"
+  password: supersecret  # Измените в продакшене!
+  database: postgres
+
+# pgAdmin
+pgadmin:
+  image: dpage/pgadmin4:latest
+  port: 80
+  email: admin@admin.com
+  password: adminsecret  # Измените в продакшене!
+
+# Metrics (Postgres Exporter)
+metrics:
+  enabled: true
+  image: prometheuscommunity/postgres-exporter:latest
+  port: 9187
+
+# Services
+service:
+  type: NodePort
+  postgresNodePort: 30001
+  pgadminNodePort: 30002
+  metricsNodePort: 30003
+
+resources: {}  # Добавьте лимиты CPU/Memory, если нужно

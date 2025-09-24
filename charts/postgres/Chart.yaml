@@ -1,5 +1,6 @@
 apiVersion: v2
 name: postgres
-description: Custom PostgreSQL chart for K8s
+description: Helm chart for PostgreSQL with pgAdmin and Prometheus metrics
+type: application
 version: 0.1.0
-appVersion: "16"
+appVersion: "1.0"
