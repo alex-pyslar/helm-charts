@@ -5,12 +5,13 @@ mariadb:
   nodePort: 30010
   rootPassword: mariadb-secret
   database: mydb
-  persistence:
-    enabled: true
-    storageClass: local-storage
-    accessModes:
-      - ReadWriteOnce
-    size: 8Gi
+
+persistence:
+  enabled: true
+  storageClass: local-storage
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
 
 # Настройки MariaDB Exporter (используем mysqld-exporter, так как он совместим)
 exporter:
