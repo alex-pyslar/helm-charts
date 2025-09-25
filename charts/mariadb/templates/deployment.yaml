@@ -42,18 +42,18 @@ spec:
         - containerPort: {{ .Values.exporter.port }}
         env:
         - name: DATA_SOURCE_NAME
-          value: "root:{{ .Values.mariadb.rootPassword }}@tcp(127.0.0.1:{{ .Values.mariadb.port }})/"
+          value: "exporter:exporter-secret@tcp(127.0.0.1:{{ .Values.mariadb.port }})/"
         livenessProbe:
           httpGet:
             path: /metrics
             port: {{ .Values.exporter.port }}
-          initialDelaySeconds: 60
+          initialDelaySeconds: 90
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /metrics
             port: {{ .Values.exporter.port }}
-          initialDelaySeconds: 30
+          initialDelaySeconds: 45
           periodSeconds: 5
       {{- end }}
       volumes:
