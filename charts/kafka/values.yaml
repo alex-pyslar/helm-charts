@@ -1,0 +1,25 @@
+# Настройки Zookeeper
+zookeeper:
+  image: confluentinc/cp-zookeeper:7.5.0
+  port: 2181
+  nodePort: 30014
+  persistence:
+    enabled: true
+    storageClass: local-storage
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+
+# Настройки Kafka
+kafka:
+  image: confluentinc/cp-kafka:7.5.0
+  port: 9092
+  nodePort: 30013
+  replicas: 1
+  zookeeperConnect: "zookeeper:2181"
+  persistence:
+    enabled: true
+    storageClass: local-storage
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi

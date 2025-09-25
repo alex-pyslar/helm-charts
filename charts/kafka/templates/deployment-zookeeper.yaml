@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-zookeeper
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-zookeeper
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-zookeeper
+    spec:
+      containers:
+      - name: zookeeper
+        image: {{ .Values.zookeeper.image }}
+        ports:
+        - containerPort: {{ .Values.zookeeper.port }}
+        env:
+        - name: ZOOKEEPER_CLIENT_PORT
+          value: "{{ .Values.zookeeper.port }}"
+        - name: ZOOKEEPER_TICK_TIME
+          value: "2000"
+        volumeMounts:
+        - name: zookeeper-data
+          mountPath: /var/lib/zookeeper
+      volumes:
+      - name: zookeeper-data
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-zookeeper-pvc
