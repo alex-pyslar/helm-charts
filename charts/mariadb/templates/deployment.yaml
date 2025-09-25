@@ -47,13 +47,13 @@ spec:
           httpGet:
             path: /metrics
             port: {{ .Values.exporter.port }}
-          initialDelaySeconds: 60  # Увеличено для ожидания инициализации MariaDB
+          initialDelaySeconds: 60
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /metrics
             port: {{ .Values.exporter.port }}
-          initialDelaySeconds: 30  # Увеличено для ожидания MariaDB
+          initialDelaySeconds: 30
           periodSeconds: 5
       {{- end }}
       volumes:
