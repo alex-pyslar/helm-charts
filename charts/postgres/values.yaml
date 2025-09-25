@@ -5,6 +5,7 @@ postgres:
   username: postgres
   password: supersecret  # Измените в продакшене!
   database: mydb
+  database: mydb
 
 # pgAdmin
 pgadmin:
