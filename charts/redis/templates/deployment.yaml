@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-redis
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-redis
+    spec:
+      containers:
+      - name: redis
+        image: {{ .Values.redis.image }}
+        ports:
+        - containerPort: {{ .Values.redis.port }}
+        env:
+        - name: REDIS_PASSWORD
+          value: {{ .Values.redis.password }}
+        args:
+        - --requirepass
+        - {{ .Values.redis.password }}
+        - --appendonly
+        - "yes"  # Включение AOF для сохранения данных
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        - name: config
+          mountPath: /usr/local/etc/redis/redis.conf
+          subPath: redis.conf
+      {{- if .Values.exporter.enabled }}
+      - name: redis-exporter
+        image: {{ .Values.exporter.image }}
+        ports:
+        - containerPort: {{ .Values.exporter.port }}
+        env:
+        - name: REDIS_ADDR
+          value: "redis://localhost:{{ .Values.redis.port }}"
+        - name: REDIS_PASSWORD
+          value: {{ .Values.redis.password }}
+      {{- end }}
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-redis-pvc
+      - name: config
+        configMap:
+          name: {{ .Release.Name }}-redis-config
