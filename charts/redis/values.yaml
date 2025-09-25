@@ -4,12 +4,13 @@ redis:
   port: 6379
   nodePort: 30007
   password: redis-secret  # Пароль для Redis, измени для продакшена
-  persistence:
-    enabled: true
-    storageClass: local-storage
-    accessModes:
-      - ReadWriteOnce
-    size: 8Gi
+
+persistence:
+  enabled: true
+  storageClass: local-storage
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
 
 # Настройки Redis Exporter для метрик
 exporter:
