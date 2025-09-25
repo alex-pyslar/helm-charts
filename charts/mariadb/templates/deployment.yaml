@@ -35,27 +35,6 @@ spec:
             port: {{ .Values.mariadb.port }}
           initialDelaySeconds: 5
           periodSeconds: 5
-      {{- if .Values.exporter.enabled }}
-      - name: mariadb-exporter
-        image: {{ .Values.exporter.image }}
-        ports:
-        - containerPort: {{ .Values.exporter.port }}
-        env:
-        - name: DATA_SOURCE_NAME
-          value: "exporter:exporter-secret@tcp(127.0.0.1:{{ .Values.mariadb.port }})/"
-        livenessProbe:
-          httpGet:
-            path: /metrics
-            port: {{ .Values.exporter.port }}
-          initialDelaySeconds: 90
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /metrics
-            port: {{ .Values.exporter.port }}
-          initialDelaySeconds: 45
-          periodSeconds: 5
-      {{- end }}
       volumes:
       - name: mariadb-data
         persistentVolumeClaim:

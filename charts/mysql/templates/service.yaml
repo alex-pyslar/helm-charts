@@ -9,11 +9,5 @@ spec:
     port: {{ .Values.mysql.port }}
     targetPort: {{ .Values.mysql.port }}
     nodePort: {{ .Values.mysql.nodePort }}
-  {{- if .Values.exporter.enabled }}
-  - name: exporter
-    port: {{ .Values.exporter.port }}
-    targetPort: {{ .Values.exporter.port }}
-    nodePort: {{ .Values.exporter.nodePort }}
-  {{- end }}
   selector:
     app: {{ .Release.Name }}-mysql

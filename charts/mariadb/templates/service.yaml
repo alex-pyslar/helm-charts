@@ -9,11 +9,5 @@ spec:
     port: {{ .Values.mariadb.port }}
     targetPort: {{ .Values.mariadb.port }}
     nodePort: {{ .Values.mariadb.nodePort }}
-  {{- if .Values.exporter.enabled }}
-  - name: exporter
-    port: {{ .Values.exporter.port }}
-    targetPort: {{ .Values.exporter.port }}
-    nodePort: {{ .Values.exporter.nodePort }}
-  {{- end }}
   selector:
     app: {{ .Release.Name }}-mariadb

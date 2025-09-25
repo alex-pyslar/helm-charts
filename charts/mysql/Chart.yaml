@@ -1,6 +1,6 @@
 apiVersion: v2
 name: mysql
-description: Helm chart for MySQL 5.7 with persistence and metrics exporter
+description: Helm chart for MySQL 5.7 with persistence
 type: application
 version: 0.1.0
 appVersion: "5.7"
