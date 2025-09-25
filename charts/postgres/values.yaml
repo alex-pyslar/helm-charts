@@ -4,8 +4,7 @@ postgres:
   port: 5432
   username: postgres
   password: supersecret  # Измените в продакшене!
-  database: mydb
-  database: mydb
+  database: postgres
 
 # pgAdmin
 pgadmin:
