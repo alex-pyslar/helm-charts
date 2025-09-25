@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-mysql
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-mysql
+    spec:
+      containers:
+      - name: mysql
+        image: {{ .Values.mysql.image }}
+        ports:
+        - containerPort: {{ .Values.mysql.port }}
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ .Values.mysql.rootPassword }}
+        - name: MYSQL_DATABASE
+          value: {{ .Values.mysql.database }}
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+      {{- if .Values.exporter.enabled }}
+      - name: mysql-exporter
+        image: {{ .Values.exporter.image }}
+        ports:
+        - containerPort: {{ .Values.exporter.port }}
+        env:
+        - name: DATA_SOURCE_NAME
+          value: "root:{{ .Values.mysql.rootPassword }}@(localhost:{{ .Values.mysql.port }})/"
+      {{- end }}
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-mysql-pvc

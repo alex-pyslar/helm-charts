@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-mariadb
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: {{ .Values.mariadb.image }}
+        ports:
+        - containerPort: {{ .Values.mariadb.port }}
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ .Values.mariadb.rootPassword }}
+        - name: MYSQL_DATABASE
+          value: {{ .Values.mariadb.database }}
+        volumeMounts:
+        - name: mariadb-data
+          mountPath: /var/lib/mysql
+      {{- if .Values.exporter.enabled }}
+      - name: mariadb-exporter
+        image: {{ .Values.exporter.image }}
+        ports:
+        - containerPort: {{ .Values.exporter.port }}
+        env:
+        - name: DATA_SOURCE_NAME
+          value: "root:{{ .Values.mariadb.rootPassword }}@(localhost:{{ .Values.mariadb.port }})/"
+      {{- end }}
+      volumes:
+      - name: mariadb-data
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-mariadb-pvc
