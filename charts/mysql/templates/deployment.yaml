@@ -25,6 +25,16 @@ spec:
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.mysql.port }}
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.mysql.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
       {{- if .Values.exporter.enabled }}
       - name: mysql-exporter
         image: {{ .Values.exporter.image }}
@@ -32,7 +42,19 @@ spec:
         - containerPort: {{ .Values.exporter.port }}
         env:
         - name: DATA_SOURCE_NAME
-          value: "root:{{ .Values.mysql.rootPassword }}@(localhost:{{ .Values.mysql.port }})/"
+          value: "root:{{ .Values.mysql.rootPassword }}@tcp(127.0.0.1:{{ .Values.mysql.port }})/"
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: {{ .Values.exporter.port }}
+          initialDelaySeconds: 60  # Увеличено для ожидания инициализации MySQL
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: {{ .Values.exporter.port }}
+          initialDelaySeconds: 30  # Увеличено для ожидания MySQL
+          periodSeconds: 5
       {{- end }}
       volumes:
       - name: mysql-data

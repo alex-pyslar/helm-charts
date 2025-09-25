@@ -25,6 +25,16 @@ spec:
         volumeMounts:
         - name: mariadb-data
           mountPath: /var/lib/mysql
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.mariadb.port }}
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.mariadb.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
       {{- if .Values.exporter.enabled }}
       - name: mariadb-exporter
         image: {{ .Values.exporter.image }}
@@ -32,7 +42,19 @@ spec:
         - containerPort: {{ .Values.exporter.port }}
         env:
         - name: DATA_SOURCE_NAME
-          value: "root:{{ .Values.mariadb.rootPassword }}@(localhost:{{ .Values.mariadb.port }})/"
+          value: "root:{{ .Values.mariadb.rootPassword }}@tcp(127.0.0.1:{{ .Values.mariadb.port }})/"
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: {{ .Values.exporter.port }}
+          initialDelaySeconds: 60  # Увеличено для ожидания инициализации MariaDB
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: {{ .Values.exporter.port }}
+          initialDelaySeconds: 30  # Увеличено для ожидания MariaDB
+          periodSeconds: 5
       {{- end }}
       volumes:
       - name: mariadb-data
