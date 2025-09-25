@@ -1,0 +1,16 @@
+grafana:
+  image: grafana/grafana:latest
+  port: 3000
+  nodePort: 30004
+  adminUser: admin
+  adminPassword: grafana-secret
+
+prometheus:
+  image: prom/prometheus:latest
+  port: 9090
+  nodePort: 30005
+
+nodeExporter:
+  image: prom/node-exporter:latest
+  port: 9100
+  nodePort: 30006
