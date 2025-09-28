@@ -2,7 +2,7 @@
 zookeeper:
   image: confluentinc/cp-zookeeper:7.5.0
   port: 2181
-  nodePort: 30014
+  nodePort: 30015
   persistence:
     enabled: true
     storageClass: local-storage
@@ -14,7 +14,7 @@ zookeeper:
 kafka:
   image: confluentinc/cp-kafka:7.5.0
   port: 9092
-  nodePort: 30013
+  nodePort: 30014
   replicas: 1
   zookeeperConnect: "zookeeper:2181"
   persistence:
