@@ -1,6 +1,5 @@
 apiVersion: v2
 name: kafka
-description: Helm chart for Apache Kafka with Zookeeper and persistence
-type: application
+description: A Helm chart for Kafka in KRaft mode
 version: 0.1.0
-appVersion: "7.5.0"
+appVersion: "3.6.0"  # Версия Kafka

@@ -1,26 +1,9 @@
-# Настройки Zookeeper
-zookeeper:
-  image: confluentinc/cp-zookeeper:7.5.0
-  port: 2181
-  nodePort: 30015
-  persistence:
-    enabled: true
-    storageClass: local-storage
-    accessModes:
-      - ReadWriteOnce
-    size: 5Gi
-
-# Настройки Kafka
-kafka:
-  image: confluentinc/cp-kafka:7.5.0
-  port: 9092
-  nodePort: 30014
-  replicas: 1
-  nodeIp: "10.66.66.11"  # Замените на реальный IP вашего узла
-  zookeeperConnect: "zookeeper:2181"
-  persistence:
-    enabled: true
-    storageClass: local-storage
-    accessModes:
-      - ReadWriteOnce
-    size: 10Gi
+replicaCount: 3
+appVersion: "3.6.0"
+nodeId: 1
+clusterId: "4L6g3nShT-eMCtK--X86sw"
+controllerQuorumVoters: "1@kafka-0.kafka-headless.default.svc.cluster.local:9093,2@kafka-1.kafka-headless.default.svc.cluster.local:9093,3@kafka-2.kafka-headless.default.svc.cluster.local:9093"
+persistence:
+  enabled: true
+  storageClass: "standard"
+  size: "8Gi"
