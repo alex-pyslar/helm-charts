@@ -7,3 +7,4 @@ persistence:
   enabled: true
   storageClass: "standard"
   size: "8Gi"
+nodeName: "k8s-main"  # Укажите имя ноды для привязки PV
