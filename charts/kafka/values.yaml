@@ -1,10 +1,7 @@
 replicaCount: 3
 appVersion: "3.6.0"
-nodeId: 1
 clusterId: "4L6g3nShT-eMCtK--X86sw"
-controllerQuorumVoters: "1@kafka-0.kafka-headless.default.svc.cluster.local:9093,2@kafka-1.kafka-headless.default.svc.cluster.local:9093,3@kafka-2.kafka-headless.default.svc.cluster.local:9093"
 persistence:
   enabled: true
   storageClass: "standard"
   size: "8Gi"
-nodeName: "k8s-main"  # Укажите имя ноды для привязки PV

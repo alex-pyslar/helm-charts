@@ -14,32 +14,42 @@ spec:
         app: {{ .Release.Name }}-kafka
     spec:
       containers:
-      - name: kafka
-        image: apache/kafka:{{ .Values.appVersion }}
-        ports:
-        - containerPort: 9092
-          name: plaintext
-        - containerPort: 9093
-          name: controller
-        env:
-        - name: KAFKA_CFG_NODE_ID
-          value: "{{ .Values.nodeId }}"
-        volumeMounts:
-        - name: config
-          mountPath: /opt/kafka/config/server.properties
-          subPath: server.properties
-        - name: data
-          mountPath: /opt/kafka/data
+        - name: kafka
+          image: apache/kafka:{{ .Values.appVersion }}
+          ports:
+            - containerPort: 9092
+              name: plaintext
+            - containerPort: 9093
+              name: controller
+          env:
+            - name: KAFKA_CFG_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: KAFKA_CFG_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: config
+              mountPath: /opt/kafka/config/server.properties
+              subPath: server.properties
+            - name: data
+              mountPath: /opt/kafka/data
       volumes:
-      - name: config
-        configMap:
-          name: {{ .Release.Name }}-kafka-config
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-kafka-config
   volumeClaimTemplates:
-  - metadata:
-      name: data
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      storageClassName: {{ .Values.persistence.storageClass }}
-      resources:
-        requests:
-          storage: {{ .Values.persistence.size }}
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.persistence.storageClass }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+        selector:
+          matchLabels:
+            app: kafka
+            nodeId: "{{ .Release.Name }}-kafka-{{ template \"kafka.nodeId\" . }}"
