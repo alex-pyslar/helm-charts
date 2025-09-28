@@ -15,8 +15,21 @@ spec:
       containers:
       - name: zookeeper
         image: {{ .Values.zookeeper.image }}
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
         ports:
         - containerPort: {{ .Values.zookeeper.port }}
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.zookeeper.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 6
         env:
         - name: ZOOKEEPER_CLIENT_PORT
           value: "{{ .Values.zookeeper.port }}"

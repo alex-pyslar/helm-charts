@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-kafka-config
+data:
+  kafka-server-properties: |
+    broker.id=0
+    num.partitions=1
+    default.replication.factor=1
+    auto.create.topics.enable=true
+    delete.topic.enable=true
+    log.retention.hours=168
+    log.segment.bytes=1073741824
+    log.retention.check.interval.ms=300000

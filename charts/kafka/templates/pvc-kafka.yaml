@@ -4,7 +4,8 @@ metadata:
   name: {{ .Release.Name }}-zookeeper-pvc
 spec:
   storageClassName: {{ .Values.zookeeper.persistence.storageClass }}
-  accessModes: {{ .Values.zookeeper.persistence.accessModes }}
+  accessModes:
+    - {{ .Values.zookeeper.persistence.accessModes | first }}
   resources:
     requests:
       storage: {{ .Values.zookeeper.persistence.size }}
