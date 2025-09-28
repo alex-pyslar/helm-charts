@@ -16,6 +16,7 @@ kafka:
   port: 9092
   nodePort: 30014
   replicas: 1
+  nodeIp: "10.66.66.11"  # Замените на реальный IP вашего узла
   zookeeperConnect: "zookeeper:2181"
   persistence:
     enabled: true
