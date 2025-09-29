@@ -46,7 +46,6 @@ data:
     if [ ! -f "/var/www/html/index.php" ] && [ -d "/usr/src/nextcloud" ]; then
       echo "Copying Nextcloud files from /usr/src/nextcloud to /var/www/html (excluding config)..."
       cp -r /usr/src/nextcloud/* /var/www/html/
-      rm -rf /var/www/html/config  # Remove copied config to avoid conflicts with ConfigMap
       chown -R www-data:www-data /var/www/html
       chmod -R 755 /var/www/html
     fi
@@ -73,8 +72,8 @@ data:
     cat /etc/apache2/apache2.conf
     # Run Nextcloud setup if not installed
     if [ ! -f "{{ .Values.nextcloud.datadir }}/config.php" ]; then
-      echo "Running Nextcloud installation..."
-      php $OCC_COMMAND maintenance:install \
+      echo "Running Nextcloud installation as root..."
+      su - root -c "php $OCC_COMMAND maintenance:install \
         --database={{ .Values.externalDatabase.type }} \
         --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
         --database-name={{ .Values.externalDatabase.database }} \
@@ -82,7 +81,7 @@ data:
         --database-pass={{ .Values.externalDatabase.password }} \
         --admin-user={{ .Values.nextcloud.adminUser }} \
         --admin-pass={{ .Values.nextcloud.adminPassword }} \
-        --data-dir={{ .Values.nextcloud.datadir }}
+        --data-dir={{ .Values.nextcloud.datadir }}"
       if [ $? -ne 0 ]; then
         echo "ERROR: Nextcloud installation failed"
         exit 1
