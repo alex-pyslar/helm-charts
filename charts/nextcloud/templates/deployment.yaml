@@ -17,6 +17,13 @@ spec:
       labels:
         app: nextcloud-nextcloud
     spec:
+      initContainers:
+        - name: init-permissions
+          image: busybox
+          command: ["sh", "-c", "mkdir -p /usr/local/etc/php/conf.d && chown -R 33:33 /usr/local/etc/php/conf.d && chmod -R 755 /usr/local/etc/php/conf.d"]
+          volumeMounts:
+            - name: php-conf
+              mountPath: /usr/local/etc/php/conf.d
       containers:
         - name: nextcloud
           image: {{ .Values.nextcloud.image }}
@@ -40,25 +47,20 @@ spec:
               value: {{ .Values.nextcloud.adminPassword }}
             - name: NEXTCLOUD_DATA_DIR
               value: {{ .Values.nextcloud.datadir }}
-          command: ["/bin/sh"]
-          args: ["/var/www/html/config/custom-entrypoint.sh"]
+            - name: REDIS_HOST
+              value: {{ .Values.redis.host }}
+            - name: REDIS_PORT
+              value: "{{ .Values.redis.port }}"
+            - name: REDIS_PASSWORD
+              value: {{ .Values.redis.password }}
           volumeMounts:
             - name: nextcloud-data
               mountPath: {{ .Values.nextcloud.datadir }}
             - name: config
               mountPath: /var/www/html/config/config.php
               subPath: config.php
-            - name: config
-              mountPath: /var/www/html/config/custom-entrypoint.sh
-              subPath: custom-entrypoint.sh
-            - name: config
-              mountPath: /etc/apache2/ports.conf
-              subPath: ports.conf
-            - name: config
-              mountPath: /etc/apache2/apache2.conf
-              subPath: apache2.conf
-            - name: apache-logs
-              mountPath: /var/log/apache2
+            - name: php-conf
+              mountPath: /usr/local/etc/php/conf.d
           securityContext:
             runAsUser: 33
             fsGroup: 33
@@ -95,15 +97,5 @@ spec:
         - name: config
           configMap:
             name: nextcloud-nextcloud-config
-            items:
-              - key: config.php
-                path: config.php
-              - key: custom-entrypoint.sh
-                path: custom-entrypoint.sh
-                mode: 0755
-              - key: ports.conf
-                path: ports.conf
-              - key: apache2.conf
-                path: apache2.conf
-        - name: apache-logs
+        - name: php-conf
           emptyDir: {}

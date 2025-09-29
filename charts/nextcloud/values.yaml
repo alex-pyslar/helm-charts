@@ -1,8 +1,8 @@
 # Настройки Nextcloud
 nextcloud:
-  image: nextcloud:28.0.11-apache  # Для тестирования latest можно заменить на nextcloud:latest
+  image: nextcloud:28.0.11-apache
   imagePullPolicy: IfNotPresent
-  port: 8080
+  port: 80
   nodePort: 30012
   adminUser: admin
   adminPassword: changeme
@@ -43,7 +43,7 @@ exporter:
     token: ""
     username: ""
     password: ""
-  server: "http://nextcloud-nextcloud.default.svc.cluster.local:8080"
+  server: "http://nextcloud-nextcloud.default.svc.cluster.local"
   timeout: "5s"
   enableApps: true
   enableUpdates: true

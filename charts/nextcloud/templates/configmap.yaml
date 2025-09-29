@@ -12,7 +12,7 @@ data:
       'dbhost' => '{{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}',
       'dbuser' => '{{ .Values.externalDatabase.user }}',
       'dbpassword' => '{{ .Values.externalDatabase.password }}',
-      'overwrite.cli.url' => 'http://nextcloud-nextcloud.default.svc.cluster.local:8080',
+      'overwrite.cli.url' => 'http://nextcloud-nextcloud.default.svc.cluster.local',
       'trusted_domains' => array (
         0 => 'localhost',
         1 => 'nextcloud-nextcloud.default.svc.cluster.local',
@@ -30,96 +30,3 @@ data:
       ),
       'config_is_read_only' => true,
     );
-  custom-entrypoint.sh: |
-    #!/bin/sh
-    # Custom entrypoint to bypass redis-session.ini creation
-    echo "Starting Nextcloud with custom entrypoint..."
-    # Ensure data directory permissions
-    echo "Checking permissions for {{ .Values.nextcloud.datadir }}..."
-    chown -R www-data:www-data {{ .Values.nextcloud.datadir }}
-    chmod -R 755 {{ .Values.nextcloud.datadir }}
-    ls -ld {{ .Values.nextcloud.datadir }}
-    # Debug: Check Nextcloud files
-    echo "Checking Nextcloud files in /var/www/html..."
-    ls -l /var/www/html || echo "ERROR: Cannot list /var/www/html"
-    # Copy Nextcloud files from /usr/src/nextcloud if needed, excluding config
-    if [ ! -f "/var/www/html/index.php" ] && [ -d "/usr/src/nextcloud" ]; then
-      echo "Copying Nextcloud files from /usr/src/nextcloud to /var/www/html (excluding config)..."
-      cp -r /usr/src/nextcloud/* /var/www/html/
-      chown -R www-data:www-data /var/www/html
-      chmod -R 755 /var/www/html
-    fi
-    # Debug: Check for index.php and occ
-    echo "Checking for Nextcloud files in image..."
-    find / -name index.php 2>/dev/null || echo "WARN: index.php not found in image"
-    find / -name occ 2>/dev/null || echo "WARN: occ not found in image"
-    if [ -f "/var/www/html/index.php" ]; then
-      echo "Found /var/www/html/index.php"
-    else
-      echo "ERROR: /var/www/html/index.php not found"
-      exit 1
-    fi
-    if [ -f "/var/www/html/occ" ]; then
-      echo "Found /var/www/html/occ"
-      OCC_COMMAND="/var/www/html/occ"
-    else
-      echo "WARN: /var/www/html/occ not found, using index.php occ"
-      OCC_COMMAND="/var/www/html/index.php occ"
-    fi
-    # Debug: Check Apache configuration
-    echo "Checking Apache configuration..."
-    cat /etc/apache2/ports.conf
-    cat /etc/apache2/apache2.conf
-    # Run Nextcloud setup if not installed
-    if [ ! -f "{{ .Values.nextcloud.datadir }}/config.php" ]; then
-      echo "Running Nextcloud installation as root..."
-      # Use gosu if available, otherwise run directly as root
-      if command -v gosu >/dev/null 2>&1; then
-        gosu root php $OCC_COMMAND maintenance:install \
-          --database={{ .Values.externalDatabase.type }} \
-          --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
-          --database-name={{ .Values.externalDatabase.database }} \
-          --database-user={{ .Values.externalDatabase.user }} \
-          --database-pass={{ .Values.externalDatabase.password }} \
-          --admin-user={{ .Values.nextcloud.adminUser }} \
-          --admin-pass={{ .Values.nextcloud.adminPassword }} \
-          --data-dir={{ .Values.nextcloud.datadir }}
-      else
-        php $OCC_COMMAND maintenance:install \
-          --database={{ .Values.externalDatabase.type }} \
-          --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
-          --database-name={{ .Values.externalDatabase.database }} \
-          --database-user={{ .Values.externalDatabase.user }} \
-          --database-pass={{ .Values.externalDatabase.password }} \
-          --admin-user={{ .Values.nextcloud.adminUser }} \
-          --admin-pass={{ .Values.nextcloud.adminPassword }} \
-          --data-dir={{ .Values.nextcloud.datadir }}
-      fi
-      if [ $? -ne 0 ]; then
-        echo "ERROR: Nextcloud installation failed"
-        exit 1
-      fi
-    fi
-    # Start Apache
-    echo "Starting Apache on port 8080..."
-    apache2ctl -t && echo "Apache configuration test passed" || { echo "Apache configuration test failed"; cat /var/log/apache2/error.log; exit 1; }
-    exec apache2-foreground
-  ports.conf: |
-    Listen 8080
-    <IfModule ssl_module>
-        Listen 443
-    </IfModule>
-    <IfModule mod_gnutls.c>
-        Listen 443
-    </IfModule>
-  apache2.conf: |
-    LoadModule mpm_prefork_module /usr/lib/apache2/modules/mod_mpm_prefork.so
-    ServerName nextcloud.velesoft.ru
-    <Directory /var/www/html>
-        Options Indexes FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-    ErrorLog /var/log/apache2/error.log
-    LogLevel warn
-    CustomLog /var/log/apache2/access.log combined
