@@ -41,6 +41,14 @@ data:
     # Debug: Check Nextcloud files
     echo "Checking Nextcloud files in /var/www/html..."
     ls -l /var/www/html || echo "ERROR: Cannot list /var/www/html"
+    # Copy Nextcloud files from /usr/src/nextcloud if needed
+    if [ ! -f "/var/www/html/index.php" ] && [ -d "/usr/src/nextcloud" ]; then
+      echo "Copying Nextcloud files from /usr/src/nextcloud to /var/www/html..."
+      cp -r /usr/src/nextcloud/* /var/www/html/
+      chown -R www-data:www-data /var/www/html
+      chmod -R 755 /var/www/html
+    fi
+    # Debug: Check for index.php and occ
     echo "Checking for Nextcloud files in image..."
     find / -name index.php 2>/dev/null || echo "ERROR: index.php not found in image"
     find / -name occ 2>/dev/null || echo "ERROR: occ not found in image"
