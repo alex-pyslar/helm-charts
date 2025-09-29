@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-nextcloud-config
+data:
+  config.php: |
+    <?php
+    $CONFIG = array (
+      'datadirectory' => '{{ .Values.nextcloud.datadir }}',
+      'dbtype' => '{{ .Values.externalDatabase.type }}',
+      'dbname' => '{{ .Values.externalDatabase.database }}',
+      'dbhost' => '{{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }}',
+      'dbuser' => '{{ .Values.externalDatabase.user }}',
+      'dbpassword' => '{{ .Values.externalDatabase.password }}',
+      'overwrite.cli.url' => 'http://{{ .Release.Name }}-nextcloud',
+      'installed' => false,
+      {{- if .Values.redis.enabled }}
+      'memcache.local' => '\\OC\\Memcache\\Redis',
+      'memcache.locking' => '\\OC\\Memcache\\Redis',
+      'redis' => array(
+        'host' => '{{ .Values.redis.host }}',
+        'port' => {{ .Values.redis.port }},
+        'password' => '{{ .Values.redis.password }}',
+      ),
+      {{- end }}
+    );
