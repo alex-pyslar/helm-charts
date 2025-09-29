@@ -14,7 +14,6 @@ data:
       'dbpassword' => '{{ .Values.externalDatabase.password }}',
       'overwrite.cli.url' => 'http://nextcloud-nextcloud.default.svc.cluster.local',
       'installed' => false,
-      {{- if .Values.redis.enabled }}
       'memcache.local' => '\\OC\\Memcache\\Redis',
       'memcache.locking' => '\\OC\\Memcache\\Redis',
       'redis' => array(
@@ -22,5 +21,4 @@ data:
         'port' => {{ .Values.redis.port }},
         'password' => '{{ .Values.redis.password }}',
       ),
-      {{- end }}
     );

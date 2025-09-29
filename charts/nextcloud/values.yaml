@@ -10,7 +10,7 @@ nextcloud:
 
 # Настройки внешнего PostgreSQL
 externalDatabase:
-  type: postgresql
+  type: pgsql
   host: postgres-postgres.default.svc.cluster.local
   port: 5432
   user: nextcloud

@@ -17,6 +17,12 @@ spec:
       labels:
         app: nextcloud-nextcloud
     spec:
+      initContainers:
+        - name: init-permissions
+          image: {{ .Values.nextcloud.image }}
+          command: ["sh", "-c", "mkdir -p /usr/local/etc/php/conf.d && chown -R 33:33 /usr/local/etc/php/conf.d && chmod -R 755 /usr/local/etc/php/conf.d"]
+          securityContext:
+            runAsUser: 0  # Запускаем initContainer от root, чтобы менять права
       containers:
         - name: nextcloud
           image: {{ .Values.nextcloud.image }}
