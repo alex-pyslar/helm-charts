@@ -46,15 +46,22 @@ spec:
               value: "{{ .Values.redis.port }}"
             - name: REDIS_PASSWORD
               value: {{ .Values.redis.password }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "session.save_handler = redis" > /tmp/redis-session.ini &&
+              echo "session.save_path = \"tcp://{{ .Values.redis.host }}:{{ .Values.redis.port }}?auth={{ .Values.redis.password }}\"" >> /tmp/redis-session.ini &&
+              mkdir -p /usr/local/etc/php/conf.d &&
+              cp /tmp/redis-session.ini /usr/local/etc/php/conf.d/redis-session.ini &&
+              chown 33:33 /usr/local/etc/php/conf.d/redis-session.ini &&
+              chmod 644 /usr/local/etc/php/conf.d/redis-session.ini &&
+              /entrypoint.sh apache2-foreground
           volumeMounts:
             - name: nextcloud-data
               mountPath: {{ .Values.nextcloud.datadir }}
             - name: config
               mountPath: /var/www/html/config/config.php
               subPath: config.php
-            - name: config
-              mountPath: /usr/local/etc/php/conf.d/redis-session.ini
-              subPath: redis-session.ini
           securityContext:
             runAsUser: 33
             fsGroup: 33
