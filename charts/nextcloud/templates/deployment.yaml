@@ -1,25 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-nextcloud
+  name: nextcloud-nextcloud
   labels:
-    app: {{ .Release.Name }}-nextcloud
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app: nextcloud-nextcloud
+    app.kubernetes.io/instance: nextcloud
+    app.kubernetes.io/version: "28.0.0"
+    app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-nextcloud
+      app: nextcloud-nextcloud
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-nextcloud
+        app: nextcloud-nextcloud
     spec:
       containers:
         - name: nextcloud
           image: {{ .Values.nextcloud.image }}
+          imagePullPolicy: {{ .Values.nextcloud.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.nextcloud.port }}
           env:
@@ -39,14 +40,12 @@ spec:
               value: {{ .Values.nextcloud.adminPassword }}
             - name: NEXTCLOUD_DATA_DIR
               value: {{ .Values.nextcloud.datadir }}
-        {{- if .Values.redis.enabled }}
             - name: REDIS_HOST
               value: {{ .Values.redis.host }}
             - name: REDIS_PORT
               value: "{{ .Values.redis.port }}"
             - name: REDIS_PASSWORD
               value: {{ .Values.redis.password }}
-        {{- end }}
           volumeMounts:
             - name: nextcloud-data
               mountPath: {{ .Values.nextcloud.datadir }}
@@ -56,42 +55,25 @@ spec:
           securityContext:
             runAsUser: 33
             fsGroup: 33
-      {{- if .Values.exporter.enabled }}
         - name: nextcloud-exporter
           image: {{ .Values.exporter.image }}
+          imagePullPolicy: {{ .Values.exporter.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.exporter.port }}
           env:
             - name: NEXTCLOUD_SERVER
-              value: {{ .Values.exporter.server | quote }}
+              value: {{ .Values.exporter.server }}
             - name: NEXTCLOUD_AUTH_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-nextcloud-secrets
+                  name: nextcloud-nextcloud-secrets
                   key: auth-token
-        {{- if .Values.exporter.auth.username }}
-            - name: NEXTCLOUD_USERNAME
-              value: {{ .Values.exporter.auth.username | quote }}
-            - name: NEXTCLOUD_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Release.Name }}-nextcloud-secrets
-                  key: auth-password
-        {{- end }}
             - name: NEXTCLOUD_TIMEOUT
-              value: {{ .Values.exporter.timeout | quote }}
-        {{- if .Values.exporter.tlsSkipVerify }}
-            - name: NEXTCLOUD_TLS_SKIP_VERIFY
-              value: "true"
-        {{- end }}
-        {{- if .Values.exporter.enableApps }}
+              value: {{ .Values.exporter.timeout }}
             - name: NEXTCLOUD_INFO_APPS
               value: "true"
-        {{- end }}
-        {{- if .Values.exporter.enableUpdates }}
             - name: NEXTCLOUD_INFO_UPDATE
               value: "true"
-        {{- end }}
           resources:
             requests:
               memory: "64Mi"
@@ -99,11 +81,10 @@ spec:
             limits:
               memory: "128Mi"
               cpu: "100m"
-      {{- end }}
       volumes:
         - name: nextcloud-data
           persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-nextcloud-pvc
+            claimName: nextcloud-nextcloud-pvc
         - name: config
           configMap:
-            name: {{ .Release.Name }}-nextcloud-config
+            name: nextcloud-nextcloud-config

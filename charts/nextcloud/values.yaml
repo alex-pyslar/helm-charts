@@ -1,6 +1,7 @@
 # Настройки Nextcloud
 nextcloud:
   image: nextcloud:28-apache
+  imagePullPolicy: IfNotPresent
   port: 80
   nodePort: 30012
   adminUser: admin
@@ -10,8 +11,8 @@ nextcloud:
 # Настройки внешнего PostgreSQL
 externalDatabase:
   type: postgresql
-  host: http://10.66.66.11
-  port: 30001
+  host: postgres-postgres.default.svc.cluster.local
+  port: 5432
   user: nextcloud
   password: oN4NokpYmyoUWL27HWwTTUYynX5foHyv
   database: nextcloud
@@ -19,8 +20,8 @@ externalDatabase:
 # Настройки Redis для кэширования
 redis:
   enabled: true
-  host: http://10.66.66.11
-  port: 30007
+  host: redis-redis.default.svc.cluster.local
+  port: 6379
   password: redis-secret
 
 # Настройки persistence
@@ -35,13 +36,14 @@ persistence:
 exporter:
   enabled: true
   image: ghcr.io/xperimental/nextcloud-exporter:latest
+  imagePullPolicy: IfNotPresent
   port: 9205
   nodePort: 30011
   auth:
     token: ""
     username: ""
     password: ""
-  server: "http://10.66.66.11"
+  server: "http://nextcloud-nextcloud.default.svc.cluster.local"
   timeout: "5s"
   enableApps: true
   enableUpdates: true

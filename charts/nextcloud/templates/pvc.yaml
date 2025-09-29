@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Release.Name }}-nextcloud-pvc
+  name: nextcloud-nextcloud-pvc
 spec:
   storageClassName: {{ .Values.persistence.storageClass }}
   accessModes:
