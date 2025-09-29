@@ -22,3 +22,6 @@ data:
         'password' => '{{ .Values.redis.password }}',
       ),
     );
+  redis-session.ini: |
+    session.save_handler = redis
+    session.save_path = "tcp://{{ .Values.redis.host }}:{{ .Values.redis.port }}?auth={{ .Values.redis.password }}"
