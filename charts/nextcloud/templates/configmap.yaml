@@ -73,15 +73,28 @@ data:
     # Run Nextcloud setup if not installed
     if [ ! -f "{{ .Values.nextcloud.datadir }}/config.php" ]; then
       echo "Running Nextcloud installation as root..."
-      su - root -c "php $OCC_COMMAND maintenance:install \
-        --database={{ .Values.externalDatabase.type }} \
-        --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
-        --database-name={{ .Values.externalDatabase.database }} \
-        --database-user={{ .Values.externalDatabase.user }} \
-        --database-pass={{ .Values.externalDatabase.password }} \
-        --admin-user={{ .Values.nextcloud.adminUser }} \
-        --admin-pass={{ .Values.nextcloud.adminPassword }} \
-        --data-dir={{ .Values.nextcloud.datadir }}"
+      # Use gosu if available, otherwise run directly as root
+      if command -v gosu >/dev/null 2>&1; then
+        gosu root php $OCC_COMMAND maintenance:install \
+          --database={{ .Values.externalDatabase.type }} \
+          --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
+          --database-name={{ .Values.externalDatabase.database }} \
+          --database-user={{ .Values.externalDatabase.user }} \
+          --database-pass={{ .Values.externalDatabase.password }} \
+          --admin-user={{ .Values.nextcloud.adminUser }} \
+          --admin-pass={{ .Values.nextcloud.adminPassword }} \
+          --data-dir={{ .Values.nextcloud.datadir }}
+      else
+        php $OCC_COMMAND maintenance:install \
+          --database={{ .Values.externalDatabase.type }} \
+          --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
+          --database-name={{ .Values.externalDatabase.database }} \
+          --database-user={{ .Values.externalDatabase.user }} \
+          --database-pass={{ .Values.externalDatabase.password }} \
+          --admin-user={{ .Values.nextcloud.adminUser }} \
+          --admin-pass={{ .Values.nextcloud.adminPassword }} \
+          --data-dir={{ .Values.nextcloud.datadir }}
+      fi
       if [ $? -ne 0 ]; then
         echo "ERROR: Nextcloud installation failed"
         exit 1
