@@ -5,7 +5,7 @@ metadata:
   labels:
     app: nextcloud-nextcloud
     app.kubernetes.io/instance: nextcloud
-    app.kubernetes.io/version: "latest"
+    app.kubernetes.io/version: "28.0.11"
     app.kubernetes.io/managed-by: Helm
 spec:
   type: NodePort

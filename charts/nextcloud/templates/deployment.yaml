@@ -51,6 +51,9 @@ spec:
             - name: config
               mountPath: /var/www/html/config/custom-entrypoint.sh
               subPath: custom-entrypoint.sh
+            - name: config
+              mountPath: /etc/apache2/ports.conf
+              subPath: ports.conf
             - name: apache-logs
               mountPath: /var/log/apache2
           securityContext:
@@ -95,5 +98,7 @@ spec:
               - key: custom-entrypoint.sh
                 path: custom-entrypoint.sh
                 mode: 0755
+              - key: ports.conf
+                path: ports.conf
         - name: apache-logs
           emptyDir: {}

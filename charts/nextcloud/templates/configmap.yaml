@@ -30,19 +30,45 @@ data:
     # Ensure data directory permissions
     chown -R www-data:www-data {{ .Values.nextcloud.datadir }}
     chmod -R 755 {{ .Values.nextcloud.datadir }}
+    # Debug: Check if occ exists
+    if [ -f "/var/www/html/occ" ]; then
+      echo "Found /var/www/html/occ"
+    else
+      echo "ERROR: /var/www/html/occ not found, trying index.php occ"
+    fi
     # Run Nextcloud setup if not installed
     if [ ! -f "{{ .Values.nextcloud.datadir }}/config.php" ]; then
       echo "Running Nextcloud installation..."
-      php /var/www/html/occ maintenance:install \
-        --database={{ .Values.externalDatabase.type }} \
-        --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
-        --database-name={{ .Values.externalDatabase.database }} \
-        --database-user={{ .Values.externalDatabase.user }} \
-        --database-pass={{ .Values.externalDatabase.password }} \
-        --admin-user={{ .Values.nextcloud.adminUser }} \
-        --admin-pass={{ .Values.nextcloud.adminPassword }} \
-        --data-dir={{ .Values.nextcloud.datadir }}
+      if [ -f "/var/www/html/occ" ]; then
+        php /var/www/html/occ maintenance:install \
+          --database={{ .Values.externalDatabase.type }} \
+          --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
+          --database-name={{ .Values.externalDatabase.database }} \
+          --database-user={{ .Values.externalDatabase.user }} \
+          --database-pass={{ .Values.externalDatabase.password }} \
+          --admin-user={{ .Values.nextcloud.adminUser }} \
+          --admin-pass={{ .Values.nextcloud.adminPassword }} \
+          --data-dir={{ .Values.nextcloud.datadir }}
+      else
+        php /var/www/html/index.php occ maintenance:install \
+          --database={{ .Values.externalDatabase.type }} \
+          --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
+          --database-name={{ .Values.externalDatabase.database }} \
+          --database-user={{ .Values.externalDatabase.user }} \
+          --database-pass={{ .Values.externalDatabase.password }} \
+          --admin-user={{ .Values.nextcloud.adminUser }} \
+          --admin-pass={{ .Values.nextcloud.adminPassword }} \
+          --data-dir={{ .Values.nextcloud.datadir }}
+      fi
     fi
     # Start Apache
-    echo "Starting Apache..."
+    echo "Starting Apache on port 8080..."
     exec apache2-foreground
+  ports.conf: |
+    Listen 8080
+    <IfModule ssl_module>
+        Listen 443
+    </IfModule>
+    <IfModule mod_gnutls.c>
+        Listen 443
+    </IfModule>
