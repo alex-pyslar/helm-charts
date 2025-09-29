@@ -1,5 +1,6 @@
 {{/*
 Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 */}}
 {{- define "nextcloud.fullname" -}}
 {{- if .Values.fullnameOverride -}}
@@ -17,7 +18,7 @@ Create a default fully qualified app name.
 Common labels
 */}}
 {{- define "nextcloud.labels" -}}
-helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 app.kubernetes.io/name: {{ include "nextcloud.fullname" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
