@@ -17,6 +17,7 @@ data:
         0 => 'localhost',
         1 => 'nextcloud-nextcloud.default.svc.cluster.local',
         2 => 'nextcloud.velesoft.ru',
+        3 => '10.66.66.11:30012',
       ),
       'installed' => false,
       'memcache.local' => '\\OC\\Memcache\\Redis',
@@ -32,21 +33,29 @@ data:
     #!/bin/sh
     # Custom entrypoint to bypass redis-session.ini creation
     echo "Starting Nextcloud with custom entrypoint..."
-    # Ensure directory permissions
-    echo "Checking permissions for /var/www/html and {{ .Values.nextcloud.datadir }}..."
-    chown -R www-data:www-data /var/www/html {{ .Values.nextcloud.datadir }}
-    chmod -R 755 /var/www/html {{ .Values.nextcloud.datadir }}
+    # Ensure data directory permissions (skip /var/www/html/config as it's read-only)
+    echo "Checking permissions for {{ .Values.nextcloud.datadir }}..."
+    chown -R www-data:www-data {{ .Values.nextcloud.datadir }}
+    chmod -R 755 {{ .Values.nextcloud.datadir }}
     ls -ld /var/www/html {{ .Values.nextcloud.datadir }}
+    # Debug: Check Nextcloud files
+    echo "Checking Nextcloud files..."
+    ls -l /var/www/html/index.php /var/www/html/occ 2>/dev/null || echo "ERROR: index.php or occ not found"
     # Debug: Check Apache port configuration
     echo "Checking Apache port configuration..."
     cat /etc/apache2/ports.conf
-    # Debug: Check if occ exists
+    # Check if occ exists
     if [ -f "/var/www/html/occ" ]; then
       echo "Found /var/www/html/occ"
       OCC_COMMAND="/var/www/html/occ"
     else
-      echo "ERROR: /var/www/html/occ not found, using index.php occ"
-      OCC_COMMAND="/var/www/html/index.php occ"
+      echo "ERROR: /var/www/html/occ not found, trying index.php occ"
+      if [ -f "/var/www/html/index.php" ]; then
+        OCC_COMMAND="/var/www/html/index.php occ"
+      else
+        echo "ERROR: /var/www/html/index.php not found, cannot proceed with installation"
+        exit 1
+      fi
     fi
     # Run Nextcloud setup if not installed
     if [ ! -f "{{ .Values.nextcloud.datadir }}/config.php" ]; then
@@ -60,6 +69,10 @@ data:
         --admin-user={{ .Values.nextcloud.adminUser }} \
         --admin-pass={{ .Values.nextcloud.adminPassword }} \
         --data-dir={{ .Values.nextcloud.datadir }}
+      if [ $? -ne 0 ]; then
+        echo "ERROR: Nextcloud installation failed"
+        exit 1
+      fi
     fi
     # Start Apache
     echo "Starting Apache on port 8080..."
@@ -72,3 +85,13 @@ data:
     <IfModule mod_gnutls.c>
         Listen 443
     </IfModule>
+  apache2.conf: |
+    ServerName nextcloud.velesoft.ru
+    <Directory /var/www/html>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+    ErrorLog /var/log/apache2/error.log
+    LogLevel warn
+    CustomLog /var/log/apache2/access.log combined

@@ -54,6 +54,9 @@ spec:
             - name: config
               mountPath: /etc/apache2/ports.conf
               subPath: ports.conf
+            - name: config
+              mountPath: /etc/apache2/apache2.conf
+              subPath: apache2.conf
             - name: apache-logs
               mountPath: /var/log/apache2
           securityContext:
@@ -100,5 +103,7 @@ spec:
                 mode: 0755
               - key: ports.conf
                 path: ports.conf
+              - key: apache2.conf
+                path: apache2.conf
         - name: apache-logs
           emptyDir: {}
