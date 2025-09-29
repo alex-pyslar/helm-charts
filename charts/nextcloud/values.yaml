@@ -1,6 +1,6 @@
 # Настройки Nextcloud
 nextcloud:
-  image: nextcloud:latest
+  image: nextcloud:28.0.11-apache  # Для тестирования latest можно заменить на nextcloud:latest
   imagePullPolicy: IfNotPresent
   port: 8080
   nodePort: 30012
