@@ -16,6 +16,7 @@ data:
       'installed' => false,
       'memcache.local' => '\\OC\\Memcache\\Redis',
       'memcache.locking' => '\\OC\\Memcache\\Redis',
+      'memcache.distributed' => '\\OC\\Memcache\\Redis',
       'redis' => array(
         'host' => '{{ .Values.redis.host }}',
         'port' => {{ .Values.redis.port }},

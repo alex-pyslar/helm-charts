@@ -46,10 +46,8 @@ spec:
               value: "{{ .Values.redis.port }}"
             - name: REDIS_PASSWORD
               value: {{ .Values.redis.password }}
-            - name: PHP_SESSION_HANDLER
-              value: redis
-            - name: PHP_SESSION_PATH
-              value: "tcp://{{ .Values.redis.host }}:{{ .Values.redis.port }}?auth={{ .Values.redis.password }}"
+          command: ["/entrypoint.sh"]
+          args: ["apache2-foreground"]
           volumeMounts:
             - name: nextcloud-data
               mountPath: {{ .Values.nextcloud.datadir }}
