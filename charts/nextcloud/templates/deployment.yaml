@@ -2,6 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-nextcloud
+  labels:
+    app: {{ .Release.Name }}-nextcloud
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   replicas: 1
   selector:
@@ -49,7 +54,7 @@ spec:
               mountPath: /var/www/html/config/config.php
               subPath: config.php
           securityContext:
-            runAsUser: 33  # www-data UID
+            runAsUser: 33
             fsGroup: 33
       {{- if .Values.exporter.enabled }}
         - name: nextcloud-exporter
