@@ -43,7 +43,7 @@ exporter:
     token: ""
     username: ""
     password: ""
-  server: "http://nextcloud-nextcloud.default.svc.cluster.local"
+  server: "http://nextcloud-nextcloud.default.svc.cluster.local:8080"
   timeout: "5s"
   enableApps: true
   enableUpdates: true
