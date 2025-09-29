@@ -28,6 +28,7 @@ data:
         'port' => {{ .Values.redis.port }},
         'password' => '{{ .Values.redis.password }}',
       ),
+      'config_is_read_only' => true,
     );
   custom-entrypoint.sh: |
     #!/bin/sh
@@ -41,17 +42,18 @@ data:
     # Debug: Check Nextcloud files
     echo "Checking Nextcloud files in /var/www/html..."
     ls -l /var/www/html || echo "ERROR: Cannot list /var/www/html"
-    # Copy Nextcloud files from /usr/src/nextcloud if needed
+    # Copy Nextcloud files from /usr/src/nextcloud if needed, excluding config
     if [ ! -f "/var/www/html/index.php" ] && [ -d "/usr/src/nextcloud" ]; then
-      echo "Copying Nextcloud files from /usr/src/nextcloud to /var/www/html..."
+      echo "Copying Nextcloud files from /usr/src/nextcloud to /var/www/html (excluding config)..."
       cp -r /usr/src/nextcloud/* /var/www/html/
+      rm -rf /var/www/html/config  # Remove copied config to avoid conflicts with ConfigMap
       chown -R www-data:www-data /var/www/html
       chmod -R 755 /var/www/html
     fi
     # Debug: Check for index.php and occ
     echo "Checking for Nextcloud files in image..."
-    find / -name index.php 2>/dev/null || echo "ERROR: index.php not found in image"
-    find / -name occ 2>/dev/null || echo "ERROR: occ not found in image"
+    find / -name index.php 2>/dev/null || echo "WARN: index.php not found in image"
+    find / -name occ 2>/dev/null || echo "WARN: occ not found in image"
     if [ -f "/var/www/html/index.php" ]; then
       echo "Found /var/www/html/index.php"
     else
@@ -88,7 +90,7 @@ data:
     fi
     # Start Apache
     echo "Starting Apache on port 8080..."
-    apache2ctl -t && echo "Apache configuration test passed" || echo "Apache configuration test failed"
+    apache2ctl -t && echo "Apache configuration test passed" || { echo "Apache configuration test failed"; cat /var/log/apache2/error.log; exit 1; }
     exec apache2-foreground
   ports.conf: |
     Listen 8080
@@ -99,6 +101,7 @@ data:
         Listen 443
     </IfModule>
   apache2.conf: |
+    LoadModule mpm_prefork_module /usr/lib/apache2/modules/mod_mpm_prefork.so
     ServerName nextcloud.velesoft.ru
     <Directory /var/www/html>
         Options Indexes FollowSymLinks
