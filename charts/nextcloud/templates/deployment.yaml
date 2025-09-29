@@ -5,7 +5,7 @@ metadata:
   labels:
     app: nextcloud-nextcloud
     app.kubernetes.io/instance: nextcloud
-    app.kubernetes.io/version: "28.0.0"
+    app.kubernetes.io/version: "28.0.11"
     app.kubernetes.io/managed-by: Helm
 spec:
   replicas: 1
@@ -51,6 +51,8 @@ spec:
             - name: config
               mountPath: /var/www/html/config/custom-entrypoint.sh
               subPath: custom-entrypoint.sh
+            - name: apache-logs
+              mountPath: /var/log/apache2
           securityContext:
             runAsUser: 33
             fsGroup: 33
@@ -93,3 +95,5 @@ spec:
               - key: custom-entrypoint.sh
                 path: custom-entrypoint.sh
                 mode: 0755
+        - name: apache-logs
+          emptyDir: {}

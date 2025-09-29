@@ -33,7 +33,7 @@ data:
     # Run Nextcloud setup if not installed
     if [ ! -f "{{ .Values.nextcloud.datadir }}/config.php" ]; then
       echo "Running Nextcloud installation..."
-      su -s /bin/sh www-data -c "php /var/www/html/occ maintenance:install \
+      php /var/www/html/occ maintenance:install \
         --database={{ .Values.externalDatabase.type }} \
         --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
         --database-name={{ .Values.externalDatabase.database }} \
@@ -41,7 +41,7 @@ data:
         --database-pass={{ .Values.externalDatabase.password }} \
         --admin-user={{ .Values.nextcloud.adminUser }} \
         --admin-pass={{ .Values.nextcloud.adminPassword }} \
-        --data-dir={{ .Values.nextcloud.datadir }}"
+        --data-dir={{ .Values.nextcloud.datadir }}
     fi
     # Start Apache
     echo "Starting Apache..."
