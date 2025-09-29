@@ -2,7 +2,7 @@
 nextcloud:
   image: nextcloud:latest
   imagePullPolicy: IfNotPresent
-  port: 80
+  port: 8080
   nodePort: 30012
   adminUser: admin
   adminPassword: changeme
