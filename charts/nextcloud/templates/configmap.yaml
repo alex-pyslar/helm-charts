@@ -23,3 +23,26 @@ data:
         'password' => '{{ .Values.redis.password }}',
       ),
     );
+  custom-entrypoint.sh: |
+    #!/bin/sh
+    # Custom entrypoint to bypass redis-session.ini creation
+    echo "Starting Nextcloud with custom entrypoint..."
+    # Ensure data directory permissions
+    chown -R www-data:www-data {{ .Values.nextcloud.datadir }}
+    chmod -R 755 {{ .Values.nextcloud.datadir }}
+    # Run Nextcloud setup if not installed
+    if [ ! -f "{{ .Values.nextcloud.datadir }}/config.php" ]; then
+      echo "Running Nextcloud installation..."
+      su -s /bin/sh www-data -c "php /var/www/html/occ maintenance:install \
+        --database={{ .Values.externalDatabase.type }} \
+        --database-host={{ .Values.externalDatabase.host }}:{{ .Values.externalDatabase.port }} \
+        --database-name={{ .Values.externalDatabase.database }} \
+        --database-user={{ .Values.externalDatabase.user }} \
+        --database-pass={{ .Values.externalDatabase.password }} \
+        --admin-user={{ .Values.nextcloud.adminUser }} \
+        --admin-pass={{ .Values.nextcloud.adminPassword }} \
+        --data-dir={{ .Values.nextcloud.datadir }}"
+    fi
+    # Start Apache
+    echo "Starting Apache..."
+    exec apache2-foreground

@@ -40,20 +40,17 @@ spec:
               value: {{ .Values.nextcloud.adminPassword }}
             - name: NEXTCLOUD_DATA_DIR
               value: {{ .Values.nextcloud.datadir }}
-            - name: REDIS_HOST
-              value: {{ .Values.redis.host }}
-            - name: REDIS_PORT
-              value: "{{ .Values.redis.port }}"
-            - name: REDIS_PASSWORD
-              value: {{ .Values.redis.password }}
-          command: ["/entrypoint.sh"]
-          args: ["apache2-foreground"]
+          command: ["/bin/sh"]
+          args: ["/var/www/html/config/custom-entrypoint.sh"]
           volumeMounts:
             - name: nextcloud-data
               mountPath: {{ .Values.nextcloud.datadir }}
             - name: config
               mountPath: /var/www/html/config/config.php
               subPath: config.php
+            - name: config
+              mountPath: /var/www/html/config/custom-entrypoint.sh
+              subPath: custom-entrypoint.sh
           securityContext:
             runAsUser: 33
             fsGroup: 33
@@ -90,3 +87,9 @@ spec:
         - name: config
           configMap:
             name: nextcloud-nextcloud-config
+            items:
+              - key: config.php
+                path: config.php
+              - key: custom-entrypoint.sh
+                path: custom-entrypoint.sh
+                mode: 0755
