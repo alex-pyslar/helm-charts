@@ -3,8 +3,8 @@ minio:
   image: minio/minio:latest
   port: 9000
   consolePort: 9001
-  nodePort: 30013
-  consoleNodePort: 30014
+  nodePort: 30014
+  consoleNodePort: 30015
   accessKey: minioadmin
   secretKey: minio-secret-key
 
@@ -21,4 +21,4 @@ exporter:
   enabled: true
   image: minio/mc:latest
   port: 9100
-  nodePort: 30015
+  nodePort: 30016
