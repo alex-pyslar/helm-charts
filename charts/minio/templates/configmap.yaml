@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: minio
+data:
+  config.json: |
+    {
+      "version": "37",
+      "credential": {
+        "accessKey": "{{ .Values.minio.accessKey }}",
+        "secretKey": "{{ .Values.minio.secretKey }}"
+      },
+      "region": "us-east-1",
+      "browser": "on",
+      "logger": {
+        "console": {
+          "enable": true
+        }
+      },
+      "notify": {}
+    }

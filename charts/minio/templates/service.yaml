@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+spec:
+  type: NodePort
+  ports:
+    - name: minio-api
+      port: {{ .Values.minio.port }}
+      targetPort: {{ .Values.minio.port }}
+      nodePort: {{ .Values.minio.nodePort }}
+    - name: minio-console
+      port: {{ .Values.minio.consolePort }}
+      targetPort: {{ .Values.minio.consolePort }}
+      nodePort: {{ .Values.minio.consoleNodePort }}
+  {{- if .Values.exporter.enabled }}
+    - name: exporter
+      port: {{ .Values.exporter.port }}
+      targetPort: {{ .Values.exporter.port }}
+      nodePort: {{ .Values.exporter.nodePort }}
+  {{- end }}
+  selector:
+    app: minio

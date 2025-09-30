@@ -1,0 +1,24 @@
+# Настройки MinIO
+minio:
+  image: minio/minio:latest
+  port: 9000
+  consolePort: 9001
+  nodePort: 30009
+  consoleNodePort: 30010
+  accessKey: minioadmin
+  secretKey: minio-secret-key
+
+persistence:
+  enabled: true
+  storageClass: local-storage
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  localPath: /mnt/disks/minio
+  nodeAffinityHostname: k8s-main
+
+exporter:
+  enabled: true
+  image: minio/mc:latest
+  port: 9100
+  nodePort: 30011

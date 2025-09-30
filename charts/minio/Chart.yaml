@@ -1,0 +1,6 @@
+apiVersion: v2
+name: minio
+description: Helm chart for MinIO with optional metrics exporter
+type: application
+version: 0.1.0
+appVersion: "latest"
