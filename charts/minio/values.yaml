@@ -19,6 +19,6 @@ persistence:
 
 exporter:
   enabled: true
-  image: minio/mc:latest
+  image: quay.io/prometheus/minio-exporter:latest
   port: 9100
   nodePort: 30016

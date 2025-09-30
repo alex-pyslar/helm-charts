@@ -39,17 +39,11 @@ spec:
       {{- if .Values.exporter.enabled }}
         - name: minio-exporter
           image: {{ .Values.exporter.image }}
-          command:
-            - mc
-            - monitor
-            - prometheus
-            - --port
-            - "{{ .Values.exporter.port }}"
           ports:
             - containerPort: {{ .Values.exporter.port }}
               name: exporter
           env:
-            - name: MINIO_SERVER
+            - name: MINIO_SERVER_URL
               value: "http://localhost:{{ .Values.minio.port }}"
             - name: MINIO_ACCESS_KEY
               value: {{ .Values.minio.accessKey }}
