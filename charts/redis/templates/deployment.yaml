@@ -1,51 +1,88 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-redis
+  name: redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-redis
+      app: redis
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-redis
+        app: redis
     spec:
       containers:
-      - name: redis
-        image: {{ .Values.redis.image }}
-        ports:
-        - containerPort: {{ .Values.redis.port }}
-        env:
-        - name: REDIS_PASSWORD
-          value: {{ .Values.redis.password }}
-        args:
-        - --requirepass
-        - {{ .Values.redis.password }}
-        - --appendonly
-        - "yes"  # Включение AOF для сохранения данных
-        volumeMounts:
-        - name: redis-data
-          mountPath: /data
-        - name: config
-          mountPath: /usr/local/etc/redis/redis.conf
-          subPath: redis.conf
+        - name: redis
+          image: {{ .Values.redis.image }}
+          ports:
+            - containerPort: {{ .Values.redis.port }}
+              name: redis
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: redis-password
+          args:
+            - --requirepass
+            - $(REDIS_PASSWORD)
+            - --appendonly
+            - "yes"
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+            - name: config
+              mountPath: /usr/local/etc/redis/redis.conf
+              subPath: redis.conf
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - -a
+                - $(REDIS_PASSWORD)
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.redis.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources: {{ .Values.resources.redis | toYaml | nindent 12 }}
       {{- if .Values.exporter.enabled }}
-      - name: redis-exporter
-        image: {{ .Values.exporter.image }}
-        ports:
-        - containerPort: {{ .Values.exporter.port }}
-        env:
-        - name: REDIS_ADDR
-          value: "redis://localhost:{{ .Values.redis.port }}"
-        - name: REDIS_PASSWORD
-          value: {{ .Values.redis.password }}
+        - name: redis-exporter
+          image: {{ .Values.exporter.image }}
+          ports:
+            - containerPort: {{ .Values.exporter.port }}
+              name: exporter
+          env:
+            - name: REDIS_ADDR
+              value: "redis://localhost:{{ .Values.redis.port }}"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis
+                  key: redis-password
+            - name: REDIS_EXPORTER_LOG_LEVEL
+              value: debug
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: {{ .Values.exporter.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources: {{ .Values.resources.exporter | toYaml | nindent 12 }}
       {{- end }}
       volumes:
-      - name: redis-data
-        persistentVolumeClaim:
-          claimName: {{ .Release.Name }}-redis-pvc
-      - name: config
-        configMap:
-          name: {{ .Release.Name }}-redis-config
+      {{- if .Values.persistence.enabled }}
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis
+      {{- else }}
+        - name: redis-data
+          emptyDir: {}
+      {{- end }}
+        - name: config
+          configMap:
+            name: redis

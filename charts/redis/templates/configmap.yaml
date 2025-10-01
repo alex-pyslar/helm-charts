@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-redis-config
+  name: redis
 data:
   redis.conf: |
-    # Настройки Redis
     appendonly yes
     appendfsync everysec
     dir /data
+    requirepass {{ .Values.redis.password }}

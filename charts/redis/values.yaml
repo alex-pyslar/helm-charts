@@ -1,9 +1,14 @@
-# Настройки Redis
 redis:
   image: redis:7.0
   port: 6379
   nodePort: 30007
-  password: redis-secret  # Пароль для Redis, измени для продакшена
+  password: redis-secret
+
+exporter:
+  enabled: true
+  image: oliver006/redis_exporter:latest
+  port: 9121
+  nodePort: 30008
 
 persistence:
   enabled: true
@@ -11,10 +16,21 @@ persistence:
   accessModes:
     - ReadWriteOnce
   size: 8Gi
+  localPath: /mnt/disks/redis
+  nodeAffinityHostname: k8s-main
 
-# Настройки Redis Exporter для метрик
-exporter:
-  enabled: true
-  image: oliver006/redis_exporter:latest
-  port: 9121
-  nodePort: 30008
+resources:
+  redis:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+  exporter:
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"

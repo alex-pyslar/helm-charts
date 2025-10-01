@@ -1,6 +1,6 @@
 apiVersion: v2
 name: redis
-description: Helm chart for Redis with optional metrics exporter
+description: Helm chart for Redis with Prometheus metrics exporter
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "7.0"
