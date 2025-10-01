@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports:
+            - containerPort: {{ .Values.postgres.port }}
+              name: postgres
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.postgres.username }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: postgres-password
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.database }}
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+      {{- if .Values.exporter.enabled }}
+        - name: postgres-exporter
+          image: {{ .Values.exporter.image }}
+          ports:
+            - containerPort: {{ .Values.exporter.port }}
+              name: exporter
+          env:
+            - name: DATA_SOURCE_NAME
+              value: "postgresql://{{ .Values.postgres.username }}:{{ .Values.postgres.password }}@localhost:{{ .Values.postgres.port }}/{{ .Values.postgres.database }}?sslmode=disable"
+      {{- end }}
+      volumes:
+      {{- if .Values.persistence.enabled }}
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres
+      {{- else }}
+        - name: postgres-data
+          emptyDir: {}
+      {{- end }}

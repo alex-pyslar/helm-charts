@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: postgres
+      port: {{ .Values.postgres.port }}
+      targetPort: {{ .Values.postgres.port }}
+      nodePort: {{ .Values.service.postgresNodePort }}
+  {{- if .Values.exporter.enabled }}
+    - name: exporter
+      port: {{ .Values.exporter.port }}
+      targetPort: {{ .Values.exporter.port }}
+      nodePort: {{ .Values.service.exporterNodePort }}
+  {{- end }}
+  selector:
+    app: postgres

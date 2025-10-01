@@ -1,37 +1,26 @@
-# PostgreSQL
 postgres:
   image: postgres:16
   port: 5432
   username: postgres
-  password: supersecret  # Измените в продакшене!
+  password: supersecret
   database: postgres
 
-# pgAdmin
-pgadmin:
-  image: dpage/pgadmin4:latest
-  port: 80
-  email: admin@admin.com
-  password: adminsecret  # Измените в продакшене!
-
-# Metrics (Postgres Exporter)
-metrics:
+exporter:
   enabled: true
   image: prometheuscommunity/postgres-exporter:latest
   port: 9187
+  nodePort: 30003
 
-# Services
 service:
   type: NodePort
   postgresNodePort: 30001
-  pgadminNodePort: 30002
-  metricsNodePort: 30003
+  exporterNodePort: 30003
 
-# Persistence for PostgreSQL
 persistence:
   enabled: true
   storageClass: local-storage
   accessModes:
     - ReadWriteOnce
   size: 10Gi
-
-resources: {}  # Добавьте лимиты CPU/Memory, если нужно
+  localPath: /mnt/disks/postgres
+  nodeAffinityHostname: k8s-main
