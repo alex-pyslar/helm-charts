@@ -1,39 +1,85 @@
-image:
-  repository: gitlab/gitlab-ce
-  tag: "latest"
-  pullPolicy: IfNotPresent
-service:
-  type: LoadBalancer
-  port: 80
+postgresql:
+  install: false
+redis:
+  install: false
+minio:
+  enabled: false
+
 global:
-  psql:
-    host: "{{ .Release.Name }}-postgres"
-    port: 5432
-    database: "mydb"
-    username: "postgres"
-    password:
-      secret: "{{ .Release.Name }}-postgres-secret"
-      key: "password"
-  redis:
-    host: "{{ .Release.Name }}-redis"
-    port: 6379
-    password:
-      secret: "{{ .Release.Name }}-redis-secret"
-      key: "password"
-  minio:
+  edition: ce
+  hosts:
+    domain: "gitlab.velesoft.ru"
+    https: true
+  ingress:
     enabled: true
-    host: "{{ .Release.Name }}-minio"
-    port: 9000
-    accessKey:
-      secret: "{{ .Release.Name }}-minio-secret"
-      key: "accessKey"
-    secretKey:
-      secret: "{{ .Release.Name }}-minio-secret"
-      key: "secretKey"
-resources:
-  limits:
-    cpu: "2"
-    memory: "4Gi"
-  requests:
-    cpu: "1"
-    memory: "2Gi"
+    class: "nginx"
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  psql:
+    host: "k8s-main"
+    port: 30001
+    database: "gitlabhq_production"
+    username: "postgres"
+    password: "supersecret"
+  redis:
+    host: "k8s-main"
+    port: 30007
+    password: "redis-secret"
+  minio:
+    host: "k8s-main"
+    port: 30014
+    accessKey: "minioadmin"
+    secretKey: "minio-secret-key"
+  appConfig:
+    objectStorage:
+      enabled: true
+      connection:
+        provider: "AWS"
+        endpoint: "http://k8s-main:30014"
+        aws_access_key_id: "minioadmin"
+        aws_secret_access_key: "minio-secret-key"
+        path_style: true
+      bucket: "gitlab-artifacts"
+    lfs:
+      enabled: true
+      bucket: "gitlab-lfs"
+    uploads:
+      enabled: true
+      bucket: "gitlab-uploads"
+    packages:
+      enabled: true
+      bucket: "gitlab-packages"
+
+webservice:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+sidekiq:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+gitaly:
+  persistence:
+    enabled: true
+    storageClass: "local-storage"
+    size: "20Gi"
+    accessModes:
+      - ReadWriteOnce
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+
+initialRootPassword: "supersecret"
+
+service:
+  type: ClusterIP
+  port: 80

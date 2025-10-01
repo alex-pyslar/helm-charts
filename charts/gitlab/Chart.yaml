@@ -1,5 +1,10 @@
 apiVersion: v2
 name: gitlab
-description: Custom GitLab CE chart for K8s
+description: Helm chart for GitLab with external PostgreSQL, Redis, and MinIO
+type: application
 version: 0.1.0
-appVersion: "latest"
+appVersion: "17.5.0"
+dependencies:
+  - name: gitlab
+    version: "~8.5.0"
+    repository: "https://charts.gitlab.io/"
