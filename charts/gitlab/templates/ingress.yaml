@@ -1,16 +1,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "gitlab.fullname" . }}
+  name: gitlab
+  annotations:
+    {{ toYaml .Values.global.ingress.annotations | nindent 4 }}
 spec:
   rules:
-  - host: gitlab.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ include "gitlab.fullname" . }}
-            port:
-              number: {{ .Values.service.port }}
+    - host: {{ .Values.global.hosts.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitlab
+                port:
+                  number: {{ .Values.service.port }}

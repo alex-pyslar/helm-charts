@@ -1,49 +1,61 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "gitlab.fullname" . }}
+  name: gitlab
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ include "gitlab.fullname" . }}
+      app: gitlab
   template:
     metadata:
       labels:
-        app: {{ include "gitlab.fullname" . }}
+        app: gitlab
     spec:
       containers:
-      - name: gitlab
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-        ports:
-        - containerPort: 80
-        env:
-        - name: GITLAB_OMNIBUS_CONFIG
-          value: |
-            external_url 'http://{{ include "gitlab.fullname" . }}'
-            postgresql['enable'] = false
-            gitlab_rails['db_adapter'] = 'postgresql'
-            gitlab_rails['db_host'] = '{{ .Values.global.psql.host }}'
-            gitlab_rails['db_port'] = {{ .Values.global.psql.port }}
-            gitlab_rails['db_database'] = '{{ .Values.global.psql.database }}'
-            gitlab_rails['db_username'] = '{{ .Values.global.psql.username }}'
-            gitlab_rails['db_password'] = {{ .Values.global.psql.password.secret | quote }}
-            redis['enable'] = false
-            gitlab_rails['redis_host'] = '{{ .Values.global.redis.host }}'
-            gitlab_rails['redis_port'] = {{ .Values.global.redis.port }}
-            {{- if .Values.global.redis.password.secret }}
-            gitlab_rails['redis_password'] = {{ .Values.global.redis.password.secret | quote }}
-            {{- end }}
-            {{- if .Values.global.minio.enabled }}
-            gitlab_rails['lfs_enabled'] = true
-            gitlab_rails['lfs_storage_path'] = '/var/opt/gitlab/gitlab-rails/shared/lfs-objects'
-            gitlab_rails['lfs_object_store_enabled'] = true
-            gitlab_rails['lfs_object_store_connection'] = {
-              'provider' => 'AWS',
-              'endpoint' => 'http://{{ .Values.global.minio.host }}:{{ .Values.global.minio.port }}',
-              'aws_access_key_id' => {{ .Values.global.minio.accessKey.secret | quote }},
-              'aws_secret_access_key' => {{ .Values.global.minio.secretKey.secret | quote }},
-              'path_style' => true
-            }
-            {{- end }}
-        resources: {{ toYaml .Values.resources | nindent 12 }}
+        - name: gitlab
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: GITLAB_OMNIBUS_CONFIG
+              value: |
+                external_url 'https://{{ .Values.global.hosts.domain }}'  # HTTPS для Ingress
+                postgresql['enable'] = false
+                gitlab_rails['db_adapter'] = 'postgresql'
+                gitlab_rails['db_host'] = '{{ .Values.psql.host }}'
+                gitlab_rails['db_port'] = {{ .Values.psql.port }}
+                gitlab_rails['db_database'] = '{{ .Values.psql.database }}'
+                gitlab_rails['db_username'] = '{{ .Values.psql.username }}'
+                gitlab_rails['db_password'] = '{{ .Values.psql.password }}'
+                redis['enable'] = false
+                gitlab_rails['redis_host'] = '{{ .Values.redis.host }}'
+                gitlab_rails['redis_port'] = {{ .Values.redis.port }}
+                gitlab_rails['redis_password'] = '{{ .Values.redis.password }}'
+                gitlab_rails['lfs_enabled'] = true
+                gitlab_rails['lfs_object_store_enabled'] = true
+                gitlab_rails['lfs_object_store_connection'] = {
+                  'provider' => 'AWS',
+                  'endpoint' => 'http://{{ .Values.minio.host }}:{{ .Values.minio.port }}',
+                  'aws_access_key_id' => '{{ .Values.minio.accessKey }}',
+                  'aws_secret_access_key' => '{{ .Values.minio.secretKey }}',
+                  'path_style' => true
+                }
+                gitlab_rails['artifacts_object_store_enabled'] = true
+                gitlab_rails['artifacts_object_store_connection'] = {
+                  'provider' => 'AWS',
+                  'endpoint' => 'http://{{ .Values.minio.host }}:{{ .Values.minio.port }}',
+                  'aws_access_key_id' => '{{ .Values.minio.accessKey }}',
+                  'aws_secret_access_key' => '{{ .Values.minio.secretKey }}',
+                  'path_style' => true
+                }
+                # Добавьте аналогично для uploads и packages, если нужно
+          resources: {{ toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: gitlab-data
+              mountPath: /var/opt/gitlab
+      volumes:
+        - name: gitlab-data
+          persistentVolumeClaim:
+            claimName: gitlab

@@ -1,9 +1,25 @@
-postgresql:
-  install: false
+image:
+  repository: gitlab/gitlab-ce
+  tag: "17.5.0-ce.0"
+  pullPolicy: IfNotPresent
+
+psql:
+  host: "k8s-main"
+  port: 30001
+  database: "gitlabhq_production"
+  username: "postgres"
+  password: "supersecret"
+
 redis:
-  install: false
+  host: "k8s-main"
+  port: 30007
+  password: "redis-secret"
+
 minio:
-  enabled: false
+  host: "k8s-main"
+  port: 30014
+  accessKey: "minioadmin"
+  secretKey: "minio-secret-key"
 
 global:
   edition: ce
@@ -16,30 +32,9 @@ global:
     annotations:
       kubernetes.io/ingress.class: nginx
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  psql:
-    host: "k8s-main"
-    port: 30001
-    database: "gitlabhq_production"
-    username: "postgres"
-    password: "supersecret"
-  redis:
-    host: "k8s-main"
-    port: 30007
-    password: "redis-secret"
-  minio:
-    host: "k8s-main"
-    port: 30014
-    accessKey: "minioadmin"
-    secretKey: "minio-secret-key"
   appConfig:
     objectStorage:
       enabled: true
-      connection:
-        provider: "AWS"
-        endpoint: "http://k8s-main:30014"
-        aws_access_key_id: "minioadmin"
-        aws_secret_access_key: "minio-secret-key"
-        path_style: true
       bucket: "gitlab-artifacts"
     lfs:
       enabled: true
@@ -51,32 +46,20 @@ global:
       enabled: true
       bucket: "gitlab-packages"
 
-webservice:
-  replicas: 1
-  resources:
-    requests:
-      cpu: "500m"
-      memory: "1Gi"
-    limits:
-      cpu: "1"
-      memory: "2Gi"
-sidekiq:
-  replicas: 1
-  resources:
-    requests:
-      cpu: "200m"
-      memory: "512Mi"
-gitaly:
-  persistence:
-    enabled: true
-    storageClass: "local-storage"
-    size: "20Gi"
-    accessModes:
-      - ReadWriteOnce
-  resources:
-    requests:
-      cpu: "200m"
-      memory: "512Mi"
+resources:
+  requests:
+    cpu: "500m"
+    memory: "2Gi"
+  limits:
+    cpu: "1"
+    memory: "4Gi"
+
+persistence:
+  enabled: true
+  storageClass: "local-storage"
+  size: "20Gi"
+  accessModes:
+    - ReadWriteOnce
 
 initialRootPassword: "supersecret"
 

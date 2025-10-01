@@ -1,10 +1,6 @@
 apiVersion: v2
 name: gitlab
-description: Helm chart for GitLab with external PostgreSQL, Redis, and MinIO
+description: Standalone Helm chart for GitLab Omnibus with external PostgreSQL, Redis, and MinIO
 type: application
 version: 0.1.0
 appVersion: "17.5.0"
-dependencies:
-  - name: gitlab
-    version: "~8.5.0"
-    repository: "https://charts.gitlab.io/"
