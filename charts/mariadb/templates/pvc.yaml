@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Release.Name }}-mariadb-pvc
+  name: mariadb
 spec:
   storageClassName: {{ .Values.persistence.storageClass }}
   accessModes: {{ .Values.persistence.accessModes }}

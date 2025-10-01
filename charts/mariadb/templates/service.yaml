@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Release.Name }}-mariadb
+  name: mariadb
 spec:
   type: NodePort
   ports:
-  - name: mariadb
-    port: {{ .Values.mariadb.port }}
-    targetPort: {{ .Values.mariadb.port }}
-    nodePort: {{ .Values.mariadb.nodePort }}
+    - name: mariadb
+      port: {{ .Values.mariadb.port }}
+      targetPort: {{ .Values.mariadb.port }}
+      nodePort: {{ .Values.mariadb.nodePort }}
   selector:
-    app: {{ .Release.Name }}-mariadb
+    app: mariadb

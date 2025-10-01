@@ -1,41 +1,41 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-mariadb
+  name: mariadb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-mariadb
+      app: mariadb
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-mariadb
+        app: mariadb
     spec:
       containers:
-      - name: mariadb
-        image: {{ .Values.mariadb.image }}
-        ports:
-        - containerPort: {{ .Values.mariadb.port }}
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: {{ .Values.mariadb.rootPassword }}
-        - name: MYSQL_DATABASE
-          value: {{ .Values.mariadb.database }}
-        volumeMounts:
-        - name: mariadb-data
-          mountPath: /var/lib/mysql
-        livenessProbe:
-          tcpSocket:
-            port: {{ .Values.mariadb.port }}
-          initialDelaySeconds: 15
-          periodSeconds: 10
-        readinessProbe:
-          tcpSocket:
-            port: {{ .Values.mariadb.port }}
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: mariadb
+          image: {{ .Values.mariadb.image }}
+          ports:
+            - containerPort: {{ .Values.mariadb.port }}
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: {{ .Values.mariadb.rootPassword }}
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mariadb.database }}
+          volumeMounts:
+            - name: mariadb
+              mountPath: /var/lib/mysql
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.mariadb.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.mariadb.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
       volumes:
-      - name: mariadb-data
-        persistentVolumeClaim:
-          claimName: {{ .Release.Name }}-mariadb-pvc
+        - name: mariadb
+          persistentVolumeClaim:
+            claimName: mariadb
