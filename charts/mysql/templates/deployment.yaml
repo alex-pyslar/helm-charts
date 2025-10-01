@@ -63,6 +63,11 @@ spec:
           env:
             - name: DATA_SOURCE_NAME
               value: "{{ .Values.mysql.username }}:{{ .Values.mysql.password }}@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}?parseTime=true&loc=Local"
+          volumeMounts:
+            - name: exporter-config
+              mountPath: /root/.my.cnf
+              subPath: .my.cnf
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /metrics
@@ -80,3 +85,6 @@ spec:
         - name: mysql-data
           emptyDir: {}
       {{- end }}
+        - name: exporter-config
+          configMap:
+            name: mysql-exporter-config
