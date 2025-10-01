@@ -1,5 +1,5 @@
 postgres:
-  image: postgres:latest
+  image: postgres:18
   port: 5432
   username: postgres
   password: supersecret
