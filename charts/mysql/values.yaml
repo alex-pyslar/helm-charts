@@ -7,7 +7,7 @@ mysql:
 
 exporter:
   enabled: true
-  image: prometheus/mysqld_exporter:v0.15.0
+  image: prom/mysqld-exporter:latest
   port: 9104
   nodePort: 30002
 
