@@ -24,3 +24,19 @@ persistence:
   size: 10Gi
   localPath: /mnt/disks/postgres
   nodeAffinityHostname: k8s-main
+
+resources:
+  postgres:
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+  exporter:
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
