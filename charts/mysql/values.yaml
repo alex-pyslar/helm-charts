@@ -4,39 +4,10 @@ mysql:
   username: root
   password: supersecretmysql
   database: mysql
-
-exporter:
-  enabled: true
-  image: prom/mysqld-exporter:latest
-  port: 9104
-  nodePort: 30002
-
-service:
-  type: NodePort
-  mysqlNodePort: 30009
-  exporterNodePort: 30002
-
+  nodePort: 30009
 persistence:
   enabled: true
   storageClass: local-storage
   accessModes:
     - ReadWriteOnce
-  size: 10Gi
-  localPath: /mnt/disks/mysql
-  nodeAffinityHostname: k8s-main
-
-resources:
-  mysql:
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-    requests:
-      cpu: "200m"
-      memory: "256Mi"
-  exporter:
-    limits:
-      cpu: "200m"
-      memory: "256Mi"
-    requests:
-      cpu: "100m"
-      memory: "128Mi"
+  size: 8Gi

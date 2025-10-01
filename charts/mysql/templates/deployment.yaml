@@ -17,89 +17,25 @@ spec:
           image: {{ .Values.mysql.image }}
           ports:
             - containerPort: {{ .Values.mysql.port }}
-              name: mysql
           env:
             - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql
-                  key: mysql-root-password
+              value: {{ .Values.mysql.rootPassword }}
             - name: MYSQL_DATABASE
               value: {{ .Values.mysql.database }}
-            - name: MYSQL_ALLOW_EMPTY_PASSWORD
-              value: "no"
           volumeMounts:
-            - name: mysql-data
+            - name: mysql
               mountPath: /var/lib/mysql
           livenessProbe:
-            exec:
-              command:
-                - mysqladmin
-                - ping
-                - -u
-                - {{ .Values.mysql.username }}
-                - -p{{ .Values.mysql.password }}
-            initialDelaySeconds: 30
+            tcpSocket:
+              port: {{ .Values.mysql.port }}
+            initialDelaySeconds: 15
             periodSeconds: 10
           readinessProbe:
-            exec:
-              command:
-                - mysqladmin
-                - ping
-                - -u
-                - {{ .Values.mysql.username }}
-                - -h
-                - localhost
-                - -p{{ .Values.mysql.password }}
+            tcpSocket:
+              port: {{ .Values.mysql.port }}
             initialDelaySeconds: 5
-            periodSeconds: 10
-          resources: {{ .Values.resources.mysql | toYaml | nindent 12 }}
-      {{- if .Values.exporter.enabled }}
-        - name: mysql-exporter
-          image: {{ .Values.exporter.image }}
-          ports:
-            - containerPort: {{ .Values.exporter.port }}
-              name: exporter
-          env:
-            - name: DATA_SOURCE_NAME
-              value: "{{ .Values.mysql.username }}:{{ .Values.mysql.password }}@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}?parseTime=true&loc=Local"
-          volumeMounts:
-            - name: exporter-config
-              mountPath: /root/.my.cnf
-              subPath: my.cnf
-              readOnly: true
-            - name: exporter-config
-              mountPath: /etc/my.cnf
-              subPath: my.cnf
-              readOnly: true
-          readinessProbe:
-            httpGet:
-              path: /metrics
-              port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          resources: {{ .Values.resources.exporter | toYaml | nindent 12 }}
-          lifecycle:
-            postStart:
-              exec:
-                command:
-                  - /bin/sh
-                  - -c
-                  - |
-                    echo "Checking my.cnf files:"
-                    ls -l /root/.my.cnf /etc/my.cnf
-                    cat /root/.my.cnf
-      {{- end }}
+            periodSeconds: 5
       volumes:
-      {{- if .Values.persistence.enabled }}
-        - name: mysql-data
+        - name: mysql
           persistentVolumeClaim:
             claimName: mysql
-      {{- else }}
-        - name: mysql-data
-          emptyDir: {}
-      {{- end }}
-        - name: exporter-config
-          configMap:
-            name: mysql-exporter-config
-            defaultMode: 0444
