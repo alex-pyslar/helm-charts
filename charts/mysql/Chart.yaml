@@ -2,5 +2,5 @@ apiVersion: v2
 name: mysql
 description: Helm chart for MySQL with Prometheus metrics exporter
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: "5.7"
