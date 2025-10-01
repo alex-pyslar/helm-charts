@@ -13,15 +13,21 @@ spec:
         app: mysql
     spec:
       initContainers:
-        - name: init-mysql
+        - name: init-exporter-user
           image: {{ .Values.mysql.image }}
-          command: ["sh", "-c", "until mysqladmin --user=root --password=$MYSQL_ROOT_PASSWORD ping; do echo 'Waiting for MySQL...'; sleep 2; done; mysql --user=root --password=$MYSQL_ROOT_PASSWORD -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD'; SELECT 1;\" || { echo 'Failed to initialize MySQL user'; exit 1; }"]
+          command:
+            - /bin/bash
+            - -c
+          args:
+            - |
+              mysql -u root -p{{ .Values.mysql.password }} -e "
+              CREATE USER IF NOT EXISTS '{{ .Values.exporter.exporterUser }}'@'localhost' IDENTIFIED BY '{{ .Values.exporter.exporterPassword }}';
+              GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO '{{ .Values.exporter.exporterUser }}'@'localhost';
+              FLUSH PRIVILEGES;
+              "
           env:
             - name: MYSQL_ROOT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: mysql
-                  key: mysql-root-password
+              value: {{ .Values.mysql.password }}
       containers:
         - name: mysql
           image: {{ .Values.mysql.image }}
@@ -36,38 +42,33 @@ spec:
                   key: mysql-root-password
             - name: MYSQL_DATABASE
               value: {{ .Values.mysql.database }}
-          args:
-            - --ignore-db-dir=lost+found
-            - --initialize-insecure=false
+            - name: MYSQL_ALLOW_EMPTY_PASSWORD
+              value: "no"
           volumeMounts:
             - name: mysql-data
               mountPath: /var/lib/mysql
-            - name: config
-              mountPath: /etc/mysql/my.cnf
-              subPath: my.cnf
           livenessProbe:
             exec:
               command:
                 - mysqladmin
-                - -u
-                - root
-                - -p$(MYSQL_ROOT_PASSWORD)
                 - ping
-            initialDelaySeconds: 150
+                - -u
+                - {{ .Values.mysql.username }}
+                - -p{{ .Values.mysql.password }}
+            initialDelaySeconds: 30
             periodSeconds: 10
-            timeoutSeconds: 5
           readinessProbe:
             exec:
               command:
-                - mysql
+                - mysqladmin
+                - ping
                 - -u
-                - root
-                - -p$(MYSQL_ROOT_PASSWORD)
-                - -e
-                - "SELECT 1"
-            initialDelaySeconds: 120
-            periodSeconds: 5
-            timeoutSeconds: 3
+                - {{ .Values.mysql.username }}
+                - -h
+                - localhost
+                - -p{{ .Values.mysql.password }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
           resources: {{ .Values.resources.mysql | toYaml | nindent 12 }}
       {{- if .Values.exporter.enabled }}
         - name: mysql-exporter
@@ -77,23 +78,13 @@ spec:
               name: exporter
           env:
             - name: DATA_SOURCE_NAME
-              value: "root:mysql-secret@tcp(127.0.0.1:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}"
-            - name: MYSQLD_EXPORTER_LOG_LEVEL
-              value: debug
-          livenessProbe:
-            httpGet:
-              path: /metrics
-              port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 180
-            periodSeconds: 10
-            timeoutSeconds: 5
+              value: "{{ .Values.exporter.exporterUser }}:{{ .Values.exporter.exporterPassword }}@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}?parseTime=true&loc=Local"
           readinessProbe:
             httpGet:
               path: /metrics
               port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 150
+            initialDelaySeconds: 5
             periodSeconds: 10
-            timeoutSeconds: 3
           resources: {{ .Values.resources.exporter | toYaml | nindent 12 }}
       {{- end }}
       volumes:
@@ -105,6 +96,3 @@ spec:
         - name: mysql-data
           emptyDir: {}
       {{- end }}
-        - name: config
-          configMap:
-            name: mysql

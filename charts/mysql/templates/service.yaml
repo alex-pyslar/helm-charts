@@ -3,17 +3,17 @@ kind: Service
 metadata:
   name: mysql
 spec:
-  type: NodePort
+  type: {{ .Values.service.type }}
   ports:
     - name: mysql
       port: {{ .Values.mysql.port }}
       targetPort: {{ .Values.mysql.port }}
-      nodePort: {{ .Values.mysql.nodePort }}
-  {{- if .Values.exporter.enabled }}
+      nodePort: {{ .Values.service.mysqlNodePort }}
+    {{- if .Values.exporter.enabled }}
     - name: exporter
       port: {{ .Values.exporter.port }}
       targetPort: {{ .Values.exporter.port }}
-      nodePort: {{ .Values.exporter.nodePort }}
-  {{- end }}
+      nodePort: {{ .Values.service.exporterNodePort }}
+    {{- end }}
   selector:
     app: mysql

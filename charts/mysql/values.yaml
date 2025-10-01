@@ -1,33 +1,40 @@
 mysql:
   image: mysql:5.7
   port: 3306
-  nodePort: 30009
-  rootPassword: mysql-secret
-  database: mydb
+  username: root
+  password: supersecretmysql
+  database: mysql
 
 exporter:
   enabled: true
-  image: prom/mysqld-exporter:latest
+  image: prometheus/mysqld_exporter:v0.15.0
   port: 9104
   nodePort: 30002
+  exporterUser: exporter
+  exporterPassword: exporterpass
+
+service:
+  type: NodePort
+  mysqlNodePort: 30009
+  exporterNodePort: 30002
 
 persistence:
-  enabled: false
+  enabled: true
   storageClass: local-storage
   accessModes:
     - ReadWriteOnce
-  size: 8Gi
+  size: 10Gi
   localPath: /mnt/disks/mysql
   nodeAffinityHostname: k8s-main
 
 resources:
   mysql:
     limits:
-      cpu: "1"
-      memory: "1Gi"
-    requests:
       cpu: "500m"
       memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
   exporter:
     limits:
       cpu: "200m"
