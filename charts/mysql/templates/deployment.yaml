@@ -1,41 +1,81 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-mysql
+  name: mysql
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-mysql
+      app: mysql
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-mysql
+        app: mysql
     spec:
       containers:
-      - name: mysql
-        image: {{ .Values.mysql.image }}
-        ports:
-        - containerPort: {{ .Values.mysql.port }}
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: {{ .Values.mysql.rootPassword }}
-        - name: MYSQL_DATABASE
-          value: {{ .Values.mysql.database }}
-        volumeMounts:
-        - name: mysql-data
-          mountPath: /var/lib/mysql
-        livenessProbe:
-          tcpSocket:
-            port: {{ .Values.mysql.port }}
-          initialDelaySeconds: 15
-          periodSeconds: 10
-        readinessProbe:
-          tcpSocket:
-            port: {{ .Values.mysql.port }}
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: mysql
+          image: {{ .Values.mysql.image }}
+          ports:
+            - containerPort: {{ .Values.mysql.port }}
+              name: mysql
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: mysql-root-password
+            - name: MYSQL_DATABASE
+              value: {{ .Values.mysql.database }}
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+            - name: config
+              mountPath: /etc/mysql/my.cnf
+              subPath: my.cnf
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - -u
+                - root
+                - -p$(MYSQL_ROOT_PASSWORD)
+                - ping
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.mysql.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources: {{ .Values.resources.mysql | toYaml | nindent 12 }}
+      {{- if .Values.exporter.enabled }}
+        - name: mysql-exporter
+          image: {{ .Values.exporter.image }}
+          ports:
+            - containerPort: {{ .Values.exporter.port }}
+              name: exporter
+          env:
+            - name: DATA_SOURCE_NAME
+              value: "root:{{ .Values.mysql.rootPassword }}@localhost:{{ .Values.mysql.port }}/{{ .Values.mysql.database }}"
+            - name: MYSQLD_EXPORTER_LOG_LEVEL
+              value: debug
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: {{ .Values.exporter.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources: {{ .Values.resources.exporter | toYaml | nindent 12 }}
+      {{- end }}
       volumes:
-      - name: mysql-data
-        persistentVolumeClaim:
-          claimName: {{ .Release.Name }}-mysql-pvc
+      {{- if .Values.persistence.enabled }}
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: mysql
+      {{- else }}
+        - name: mysql-data
+          emptyDir: {}
+      {{- end }}
+        - name: config
+          configMap:
+            name: mysql
