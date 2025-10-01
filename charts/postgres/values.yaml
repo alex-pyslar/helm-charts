@@ -1,5 +1,5 @@
 postgres:
-  image: postgres:18
+  image: postgres:17
   port: 5432
   username: postgres
   password: supersecret
@@ -28,11 +28,11 @@ persistence:
 resources:
   postgres:
     limits:
-      cpu: "1"
-      memory: "1Gi"
-    requests:
       cpu: "500m"
       memory: "512Mi"
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
   exporter:
     limits:
       cpu: "200m"
