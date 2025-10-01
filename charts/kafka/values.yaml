@@ -1,7 +1,22 @@
 replicaCount: 3
-appVersion: "3.6.0"
+appVersion: "3.8.0"
+image: apache/kafka:3.8.0
+port:
+  broker: 9092
+  controller: 9093
+nodePort: 30020
 clusterId: "4L6g3nShT-eMCtK--X86sw"
+rootPassword: kafka-secret
 persistence:
   enabled: true
-  storageClass: "standard"
-  size: "8Gi"
+  storageClass: local-storage
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "2Gi"
+    cpu: "1"
