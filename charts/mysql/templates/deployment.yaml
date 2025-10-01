@@ -13,13 +13,6 @@ spec:
         app: mysql
     spec:
       initContainers:
-      {{- if .Values.persistence.enabled }}
-        - name: init-storage
-          image: busybox:latest
-          command: ["sh", "-c", "chown -R 999:999 /var/lib/mysql && chmod -R 777 /var/lib/mysql"]
-          volumeMounts:
-            - name: mysql-data
-              mountPath: /var/lib/mysql
         - name: init-mysql
           image: {{ .Values.mysql.image }}
           command: ["sh", "-c", "until mysqladmin --user=root --password=$MYSQL_ROOT_PASSWORD ping; do echo 'Waiting for MySQL...'; sleep 2; done; mysql --user=root --password=$MYSQL_ROOT_PASSWORD -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD'; SELECT 1;\" || { echo 'Failed to initialize MySQL user'; exit 1; }"]
@@ -29,7 +22,6 @@ spec:
                 secretKeyRef:
                   name: mysql
                   key: mysql-root-password
-      {{- end }}
       containers:
         - name: mysql
           image: {{ .Values.mysql.image }}
@@ -61,7 +53,7 @@ spec:
                 - root
                 - -p$(MYSQL_ROOT_PASSWORD)
                 - ping
-            initialDelaySeconds: 120
+            initialDelaySeconds: 150
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
@@ -73,7 +65,7 @@ spec:
                 - -p$(MYSQL_ROOT_PASSWORD)
                 - -e
                 - "SELECT 1"
-            initialDelaySeconds: 90
+            initialDelaySeconds: 120
             periodSeconds: 5
             timeoutSeconds: 3
           resources: {{ .Values.resources.mysql | toYaml | nindent 12 }}
@@ -85,21 +77,21 @@ spec:
               name: exporter
           env:
             - name: DATA_SOURCE_NAME
-              value: "root:mysql-secret@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}"
+              value: "root:mysql-secret@tcp(127.0.0.1:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}"
             - name: MYSQLD_EXPORTER_LOG_LEVEL
               value: debug
           livenessProbe:
             httpGet:
               path: /metrics
               port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 150
+            initialDelaySeconds: 180
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /metrics
               port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 120
+            initialDelaySeconds: 150
             periodSeconds: 10
             timeoutSeconds: 3
           resources: {{ .Values.resources.exporter | toYaml | nindent 12 }}
