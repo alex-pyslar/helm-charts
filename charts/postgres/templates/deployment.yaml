@@ -28,9 +28,25 @@ spec:
                   key: postgres-password
             - name: POSTGRES_DB
               value: {{ .Values.postgres.database }}
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - {{ .Values.postgres.username }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.postgres.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources: {{ .Values.resources.postgres | toYaml | nindent 12 }}
       {{- if .Values.exporter.enabled }}
         - name: postgres-exporter
           image: {{ .Values.exporter.image }}
@@ -40,6 +56,15 @@ spec:
           env:
             - name: DATA_SOURCE_NAME
               value: "postgresql://{{ .Values.postgres.username }}:{{ .Values.postgres.password }}@localhost:{{ .Values.postgres.port }}/{{ .Values.postgres.database }}?sslmode=disable"
+            - name: PG_EXPORTER_LOG_LEVEL
+              value: debug
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: {{ .Values.exporter.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources: {{ .Values.resources.exporter | toYaml | nindent 12 }}
       {{- end }}
       volumes:
       {{- if .Values.persistence.enabled }}
