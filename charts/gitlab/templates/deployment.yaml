@@ -12,6 +12,8 @@ spec:
       labels:
         app: gitlab
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: k8s-main
       containers:
         - name: gitlab
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -21,7 +23,7 @@ spec:
           env:
             - name: GITLAB_OMNIBUS_CONFIG
               value: |
-                external_url 'https://{{ .Values.global.hosts.domain }}'  # HTTPS для Ingress
+                external_url 'https://{{ .Values.global.hosts.domain }}'
                 postgresql['enable'] = false
                 gitlab_rails['db_adapter'] = 'postgresql'
                 gitlab_rails['db_host'] = '{{ .Values.psql.host }}'
@@ -50,7 +52,7 @@ spec:
                   'aws_secret_access_key' => '{{ .Values.minio.secretKey }}',
                   'path_style' => true
                 }
-                # Добавьте аналогично для uploads и packages, если нужно
+                gitlab_rails['initial_root_password'] = '{{ .Values.initialRootPassword }}'
           resources: {{ toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: gitlab-data
