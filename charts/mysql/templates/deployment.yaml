@@ -66,7 +66,11 @@ spec:
           volumeMounts:
             - name: exporter-config
               mountPath: /root/.my.cnf
-              subPath: .my.cnf
+              subPath: my.cnf
+              readOnly: true
+            - name: exporter-config
+              mountPath: /etc/my.cnf
+              subPath: my.cnf
               readOnly: true
           readinessProbe:
             httpGet:
@@ -75,6 +79,16 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           resources: {{ .Values.resources.exporter | toYaml | nindent 12 }}
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    echo "Checking my.cnf files:"
+                    ls -l /root/.my.cnf /etc/my.cnf
+                    cat /root/.my.cnf
       {{- end }}
       volumes:
       {{- if .Values.persistence.enabled }}
@@ -88,3 +102,4 @@ spec:
         - name: exporter-config
           configMap:
             name: mysql-exporter-config
+            defaultMode: 0444

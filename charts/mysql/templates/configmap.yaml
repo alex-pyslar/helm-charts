@@ -3,9 +3,9 @@ kind: ConfigMap
 metadata:
   name: mysql-exporter-config
 data:
-  .my.cnf: |
+  my.cnf: |
     [client]
-    user={{ .Values.mysql.username }}
-    password={{ .Values.mysql.password }}
-    host=localhost
-    port={{ .Values.mysql.port }}
+    user = {{ .Values.mysql.username }}
+    password = {{ .Values.mysql.password }}
+    host = localhost
+    port = {{ .Values.mysql.port }}
