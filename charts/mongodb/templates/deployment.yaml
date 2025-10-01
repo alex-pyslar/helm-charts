@@ -1,43 +1,43 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-mongodb
+  name: mongodb
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-mongodb
+      app: mongodb
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-mongodb
+        app: mongodb
     spec:
       containers:
-      - name: mongodb
-        image: {{ .Values.mongodb.image }}
-        ports:
-        - containerPort: {{ .Values.mongodb.port }}
-        env:
-        - name: MONGO_INITDB_ROOT_USERNAME
-          value: root
-        - name: MONGO_INITDB_ROOT_PASSWORD
-          value: {{ .Values.mongodb.rootPassword }}
-        - name: MONGO_INITDB_DATABASE
-          value: {{ .Values.mongodb.database }}
-        volumeMounts:
-        - name: mongodb-data
-          mountPath: /data/db
-        livenessProbe:
-          tcpSocket:
-            port: {{ .Values.mongodb.port }}
-          initialDelaySeconds: 15
-          periodSeconds: 10
-        readinessProbe:
-          tcpSocket:
-            port: {{ .Values.mongodb.port }}
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: mongodb
+          image: {{ .Values.mongodb.image }}
+          ports:
+            - containerPort: {{ .Values.mongodb.port }}
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: root
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: {{ .Values.mongodb.rootPassword }}
+            - name: MONGO_INITDB_DATABASE
+              value: {{ .Values.mongodb.database }}
+          volumeMounts:
+            - name: mongodb
+              mountPath: /data/db
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.mongodb.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.mongodb.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
       volumes:
-      - name: mongodb-data
-        persistentVolumeClaim:
-          claimName: {{ .Release.Name }}-mongodb-pvc
+        - name: mongodb
+          persistentVolumeClaim:
+            claimName: mongodb
