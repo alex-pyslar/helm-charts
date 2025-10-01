@@ -22,7 +22,7 @@ spec:
               mountPath: /var/lib/mysql
         - name: init-mysql
           image: {{ .Values.mysql.image }}
-          command: ["sh", "-c", "mysql --user=root --password=$MYSQL_ROOT_PASSWORD -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';\" || true"]
+          command: ["sh", "-c", "mysql --user=root --password=$MYSQL_ROOT_PASSWORD -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD'; SELECT 1;\" || true"]
           env:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
@@ -61,7 +61,7 @@ spec:
                 - root
                 - -p$(MYSQL_ROOT_PASSWORD)
                 - ping
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
@@ -73,7 +73,7 @@ spec:
                 - -p$(MYSQL_ROOT_PASSWORD)
                 - -e
                 - "SELECT 1"
-            initialDelaySeconds: 5
+            initialDelaySeconds: 15
             periodSeconds: 5
             timeoutSeconds: 3
           resources: {{ .Values.resources.mysql | toYaml | nindent 12 }}
@@ -85,25 +85,21 @@ spec:
               name: exporter
           env:
             - name: DATA_SOURCE_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: mysql
-                  key: mysql-root-password
-                value: "root:$(mysql-root-password)@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}"
+              value: "root:{{ .Values.mysql.rootPassword | b64decode }}@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}"
             - name: MYSQLD_EXPORTER_LOG_LEVEL
               value: debug
           livenessProbe:
             httpGet:
               path: /metrics
               port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /metrics
               port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 15
+            initialDelaySeconds: 3
             periodSeconds: 10
             timeoutSeconds: 3
           resources: {{ .Values.resources.exporter | toYaml | nindent 12 }}
