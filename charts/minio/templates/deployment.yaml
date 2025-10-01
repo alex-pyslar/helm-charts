@@ -39,22 +39,17 @@ spec:
       {{- if .Values.exporter.enabled }}
         - name: minio-exporter
           image: {{ .Values.exporter.image }}
+          args:
+            - --minio.server={{ .Values.minio.port }}
+            - --minio.metrics-path={{ .Values.exporter.metricsPath }}
           ports:
             - containerPort: {{ .Values.exporter.port }}
               name: exporter
           env:
-            - name: MINIO_URL
-              value: "http://10.244.0.102:{{ .Values.minio.nodePort }}"
             - name: MINIO_ACCESS_KEY
               value: {{ .Values.minio.accessKey }}
-            - name: MINIO_ACCESS_SECRET
+            - name: MINIO_SECRET_KEY
               value: {{ .Values.minio.secretKey }}
-          readinessProbe:
-            httpGet:
-              path: /metrics
-              port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 10
-            periodSeconds: 10
       {{- end }}
       volumes:
         - name: minio-data
