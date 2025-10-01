@@ -40,8 +40,8 @@ spec:
         - name: minio-exporter
           image: {{ .Values.exporter.image }}
           args:
-            - --minio.server={{ .Values.minio.port }}
-            - --minio.metrics-path={{ .Values.exporter.metricsPath }}
+            - --minio.server=http://localhost:{{ .Values.minio.port }}
+            - --web.listen-address=:{{ .Values.exporter.port }}
           ports:
             - containerPort: {{ .Values.exporter.port }}
               name: exporter

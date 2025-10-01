@@ -21,4 +21,3 @@ exporter:
   image: joepll/minio-exporter:latest
   port: 9290
   nodePort: 30016
-  metricsPath: /minio/v2/metrics/cluster
