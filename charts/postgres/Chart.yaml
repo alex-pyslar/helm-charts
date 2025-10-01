@@ -3,4 +3,4 @@ name: postgres
 description: Helm chart for PostgreSQL with Prometheus metrics exporter
 type: application
 version: 0.1.0
-appVersion: "16"
+appVersion: "17"
