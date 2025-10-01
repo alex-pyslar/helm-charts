@@ -43,12 +43,18 @@ spec:
             - containerPort: {{ .Values.exporter.port }}
               name: exporter
           env:
-            - name: MINIO_EXPORTER_URL
+            - name: MINIO_URL
               value: "http://localhost:{{ .Values.minio.port }}"
-            - name: MINIO_EXPORTER_ACCESS_KEY
+            - name: MINIO_ACCESS_KEY
               value: {{ .Values.minio.accessKey }}
-            - name: MINIO_EXPORTER_SECRET_KEY
+            - name: MINIO_ACCESS_SECRET
               value: {{ .Values.minio.secretKey }}
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: {{ .Values.exporter.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
       {{- end }}
       volumes:
         - name: minio-data

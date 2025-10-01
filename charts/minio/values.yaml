@@ -1,4 +1,3 @@
-# Настройки MinIO
 minio:
   image: minio/minio:latest
   port: 9000
@@ -20,5 +19,5 @@ persistence:
 exporter:
   enabled: true
   image: joepll/minio-exporter:latest
-  port: 9100
+  port: 9290
   nodePort: 30016
