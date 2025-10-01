@@ -10,8 +10,6 @@ exporter:
   image: prometheus/mysqld_exporter:v0.15.0
   port: 9104
   nodePort: 30002
-  exporterUser: exporter
-  exporterPassword: exporterpass
 
 service:
   type: NodePort

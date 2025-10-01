@@ -12,22 +12,6 @@ spec:
       labels:
         app: mysql
     spec:
-      initContainers:
-        - name: init-exporter-user
-          image: {{ .Values.mysql.image }}
-          command:
-            - /bin/bash
-            - -c
-          args:
-            - |
-              mysql -u root -p{{ .Values.mysql.password }} -e "
-              CREATE USER IF NOT EXISTS '{{ .Values.exporter.exporterUser }}'@'localhost' IDENTIFIED BY '{{ .Values.exporter.exporterPassword }}';
-              GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO '{{ .Values.exporter.exporterUser }}'@'localhost';
-              FLUSH PRIVILEGES;
-              "
-          env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: {{ .Values.mysql.password }}
       containers:
         - name: mysql
           image: {{ .Values.mysql.image }}
@@ -78,7 +62,7 @@ spec:
               name: exporter
           env:
             - name: DATA_SOURCE_NAME
-              value: "{{ .Values.exporter.exporterUser }}:{{ .Values.exporter.exporterPassword }}@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}?parseTime=true&loc=Local"
+              value: "{{ .Values.mysql.username }}:{{ .Values.mysql.password }}@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}?parseTime=true&loc=Local"
           readinessProbe:
             httpGet:
               path: /metrics
