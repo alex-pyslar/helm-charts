@@ -44,7 +44,7 @@ spec:
               name: exporter
           env:
             - name: MINIO_URL
-              value: "http://localhost:{{ .Values.minio.port }}"
+              value: "http://10.244.0.102:{{ .Values.minio.nodePort }}"
             - name: MINIO_ACCESS_KEY
               value: {{ .Values.minio.accessKey }}
             - name: MINIO_ACCESS_SECRET
