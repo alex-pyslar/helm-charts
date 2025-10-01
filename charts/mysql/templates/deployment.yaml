@@ -20,6 +20,15 @@ spec:
           volumeMounts:
             - name: mysql-data
               mountPath: /var/lib/mysql
+        - name: init-mysql
+          image: {{ .Values.mysql.image }}
+          command: ["sh", "-c", "mysql --user=root --password=$MYSQL_ROOT_PASSWORD -e \"ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';\" || true"]
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql
+                  key: mysql-root-password
       {{- end }}
       containers:
         - name: mysql
@@ -35,6 +44,9 @@ spec:
                   key: mysql-root-password
             - name: MYSQL_DATABASE
               value: {{ .Values.mysql.database }}
+          args:
+            - --ignore-db-dir=lost+found
+            - --initialize-insecure=false
           volumeMounts:
             - name: mysql-data
               mountPath: /var/lib/mysql
@@ -73,26 +85,25 @@ spec:
               name: exporter
           env:
             - name: DATA_SOURCE_NAME
-              value: "root:$(MYSQL_ROOT_PASSWORD)@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}"
-            - name: MYSQLD_EXPORTER_LOG_LEVEL
-              value: debug
-            - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: mysql
                   key: mysql-root-password
+                value: "root:$(mysql-root-password)@tcp(localhost:{{ .Values.mysql.port }})/{{ .Values.mysql.database }}"
+            - name: MYSQLD_EXPORTER_LOG_LEVEL
+              value: debug
           livenessProbe:
             httpGet:
               path: /metrics
               port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /metrics
               port: {{ .Values.exporter.port }}
-            initialDelaySeconds: 5
+            initialDelaySeconds: 15
             periodSeconds: 10
             timeoutSeconds: 3
           resources: {{ .Values.resources.exporter | toYaml | nindent 12 }}
