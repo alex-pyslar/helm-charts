@@ -1,16 +1,15 @@
-{{- range $i := until (int .Values.replicaCount) }}
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: kafka-{{ $i }}
+  name: kafka
 spec:
   capacity:
-    storage: {{ $.Values.persistence.size }}
-  accessModes: {{ $.Values.persistence.accessModes | toYaml | nindent 4 }}
+    storage: {{ .Values.persistence.size }}
+  accessModes: {{ .Values.persistence.accessModes | toYaml | nindent 4 }}
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: {{ $.Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass }}
   local:
-    path: /mnt/disks/kafka-{{ $i }}
+    path: /mnt/disks/kafka
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -19,5 +18,3 @@ spec:
               operator: In
               values:
                 - k8s-main
----
-{{- end }}
