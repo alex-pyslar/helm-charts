@@ -28,13 +28,13 @@ spec:
             - name: CLUSTER_ID
               value: {{ .Values.clusterId }}
             - name: KAFKA_NODE_ID
-              value: "$(echo $POD_NAME | sed 's/kafka-//')"
+              value: "0"
             - name: KAFKA_PROCESS_ROLES
               value: "broker,controller"
             - name: KAFKA_LISTENERS
               value: "PLAINTEXT://:{{ .Values.port.broker }},CONTROLLER://:{{ .Values.port.controller }}"
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: "PLAINTEXT://kafka-$(KAFKA_NODE_ID).kafka-headless:{{ .Values.port.broker }}"
+              value: "PLAINTEXT://kafka-0.kafka-headless:{{ .Values.port.broker }}"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
               value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
@@ -42,7 +42,7 @@ spec:
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
               value: "CONTROLLER"
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: "0@kafka-0.kafka-headless:{{ .Values.port.controller }},1@kafka-1.kafka-headless:{{ .Values.port.controller }},2@kafka-2.kafka-headless:{{ .Values.port.controller }}"
+              value: "0@kafka-0.kafka-headless:{{ .Values.port.controller }}"
             - name: KAFKA_LOG_DIRS
               value: "/bitnami/kafka/data"
           command: ["/bin/bash", "-c"]

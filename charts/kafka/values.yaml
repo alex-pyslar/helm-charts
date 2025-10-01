@@ -1,4 +1,4 @@
-replicaCount: 3
+replicaCount: 1
 appVersion: "3.8.0"
 image: apache/kafka:3.8.0
 port:
