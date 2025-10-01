@@ -9,7 +9,7 @@ exporter:
   enabled: true
   image: prom/mysqld-exporter:latest
   port: 9104
-  nodePort: 30010
+  nodePort: 30002
 
 persistence:
   enabled: false
