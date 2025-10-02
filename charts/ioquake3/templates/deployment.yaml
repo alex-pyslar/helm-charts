@@ -18,6 +18,8 @@ spec:
           ports:
             - containerPort: {{ .Values.ioquake3.port }}
               protocol: UDP
+          command:
+            - /ioq3ded
           args:
             - "+set"
             - "dedicated"
