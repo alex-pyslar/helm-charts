@@ -19,7 +19,7 @@ spec:
             - containerPort: {{ .Values.ioquake3.port }}
               protocol: UDP
           command:
-            - /ioq3ded
+            - /usr/local/games/quake3/ioq3ded.x86_64
           args:
             - "+set"
             - "dedicated"
