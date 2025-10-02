@@ -37,7 +37,7 @@ spec:
             - name: KAFKA_ADVERTISED_LISTENERS
               value: "PLAINTEXT://kafka-0.kafka-headless:{{ .Values.port.broker }}"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "CONTROLLER:PLAINTX,PLAINTEXT:PLAINTEXT"
+              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
               value: "PLAINTEXT"
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
@@ -65,7 +65,7 @@ spec:
                 mkdir -p /kafka/data
               fi
               if [ ! -f /kafka/data/meta.properties ]; then
-                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /opt/kafka/config/kraft/server.properties --directory /kafka/data
+                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /opt/kafka/config/kraft/server.properties
               fi
               /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties \
                 --override process.roles=$KAFKA_PROCESS_ROLES \
