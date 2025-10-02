@@ -13,6 +13,10 @@ spec:
       labels:
         app: kafka
     spec:
+      securityContext:
+        fsGroup: 1001
+        runAsUser: 1001
+        runAsGroup: 1001
       containers:
         - name: kafka
           image: {{ .Values.image }}
@@ -63,9 +67,10 @@ spec:
             - |
               if [ ! -d /kafka/data ]; then
                 mkdir -p /kafka/data
+                chown -R 1001:1001 /kafka/data
               fi
               if [ ! -f /kafka/data/meta.properties ]; then
-                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /opt/kafka/config/kraft/server.properties
+                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /opt/kafka/config/kraft/server.properties --config log.dirs=/kafka/data
               fi
               /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties \
                 --override process.roles=$KAFKA_PROCESS_ROLES \
