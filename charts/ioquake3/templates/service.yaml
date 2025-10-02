@@ -9,7 +9,7 @@ spec:
       port: {{ .Values.ioquake3.port }}
       targetPort: {{ .Values.ioquake3.port }}
       protocol: UDP
-      {{- if .Values.ioquake3.nodePort }}
+      {{- if and (eq .Values.ioquake3.serviceType "NodePort") .Values.ioquake3.nodePort }}
       nodePort: {{ .Values.ioquake3.nodePort }}
       {{- end }}
   selector:

@@ -48,7 +48,7 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - "ps aux | grep ioq3ded | grep -v grep"
+                - "netstat -uln | grep :{{ .Values.ioquake3.port }}"
             initialDelaySeconds: 15
             periodSeconds: 10
           readinessProbe:
