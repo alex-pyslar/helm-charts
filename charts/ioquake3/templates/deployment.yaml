@@ -36,6 +36,9 @@ spec:
             - "+set"
             - "rconpassword"
             - "{{ .Values.ioquake3.rconpassword }}"
+            - "+set"
+            - "fs_homepath"
+            - "/usr/local/games/quake3"
             - "+map"
             - "{{ .Values.ioquake3.map }}"
             - "+exec"
@@ -44,7 +47,7 @@ spec:
             - name: config
               mountPath: /ioquake3
             - name: data
-              mountPath: /mnt
+              mountPath: /usr/local/games/quake3/baseq3
           resources:
             limits:
               memory: "512Mi"
