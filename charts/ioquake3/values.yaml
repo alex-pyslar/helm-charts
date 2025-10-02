@@ -7,6 +7,7 @@ ioquake3:
   gametype: 3
   map: "q3dm1"
   rconpassword: "secret_rcon"
+  serviceType: NodePort
 
 persistence:
   enabled: true

@@ -43,6 +43,13 @@ spec:
               mountPath: /ioquake3
             - name: data
               mountPath: /mnt
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
           livenessProbe:
             exec:
               command:
@@ -51,11 +58,13 @@ spec:
                 - "netstat -uln | grep :{{ .Values.ioquake3.port }}"
             initialDelaySeconds: 15
             periodSeconds: 10
+            timeoutSeconds: 5
           readinessProbe:
             tcpSocket:
               port: {{ .Values.ioquake3.port }}
             initialDelaySeconds: 5
             periodSeconds: 5
+            timeoutSeconds: 3
       volumes:
         - name: config
           configMap:

@@ -11,7 +11,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: {{ .Values.persistence.storageClass }}
   local:
-    path: /mnt/ioquake3
+    path: /mnt/disks/ioquake3
   nodeAffinity:
     required:
       nodeSelectorTerms:

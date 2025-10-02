@@ -13,3 +13,4 @@ data:
     set g_needpass 0
     set sv_pure 0
     set fs_game "baseq3"
+    set logfile 2
