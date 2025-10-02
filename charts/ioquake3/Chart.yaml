@@ -1,0 +1,6 @@
+apiVersion: v2
+name: ioquake3
+description: Helm chart for ioQuake3 dedicated server
+type: application
+version: 0.1.0
+appVersion: "1.36"

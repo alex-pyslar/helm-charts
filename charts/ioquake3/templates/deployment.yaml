@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ioquake3
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ioquake3
+  template:
+    metadata:
+      labels:
+        app: ioquake3
+    spec:
+      containers:
+        - name: ioquake3
+          image: {{ .Values.ioquake3.image }}
+          ports:
+            - containerPort: {{ .Values.ioquake3.port }}
+              protocol: UDP
+          args:
+            - "+set"
+            - "dedicated"
+            - "1"
+            - "+set"
+            - "sv_hostname"
+            - "{{ .Values.ioquake3.hostname }}"
+            - "+set"
+            - "sv_maxclients"
+            - "{{ .Values.ioquake3.maxclients }}"
+            - "+set"
+            - "g_gametype"
+            - "{{ .Values.ioquake3.gametype }}"
+            - "+set"
+            - "rconpassword"
+            - "{{ .Values.ioquake3.rconpassword }}"
+            - "+map"
+            - "{{ .Values.ioquake3.map }}"
+            - "+exec"
+            - "server.cfg"
+          volumeMounts:
+            - name: config
+              mountPath: /ioquake3
+            - name: data
+              mountPath: /mnt
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "ps aux | grep ioq3ded | grep -v grep"
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.ioquake3.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: config
+          configMap:
+            name: ioquake3
+        - name: data
+          persistentVolumeClaim:
+            claimName: ioquake3

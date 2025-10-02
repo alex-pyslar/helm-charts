@@ -1,0 +1,16 @@
+ioquake3:
+  image: florianpiesche/ioquake3-server:latest
+  port: 27960
+  nodePort: 30060
+  hostname: "K8s ioQuake3 Server"
+  maxclients: 16
+  gametype: 3
+  map: "q3dm1"
+  rconpassword: "secret_rcon"
+
+persistence:
+  enabled: true
+  storageClass: local-storage
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi

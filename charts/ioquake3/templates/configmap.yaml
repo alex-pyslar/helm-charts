@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ioquake3
+data:
+  server.cfg: |
+    set sv_hostname "{{ .Values.ioquake3.hostname }}"
+    set sv_maxclients {{ .Values.ioquake3.maxclients }}
+    set g_gametype {{ .Values.ioquake3.gametype }}
+    set rconpassword "{{ .Values.ioquake3.rconpassword }}"
+    set timelimit 20
+    set fraglimit 50
+    set g_needpass 0
+    set sv_pure 0
+    set fs_game "baseq3"

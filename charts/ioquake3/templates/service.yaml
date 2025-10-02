@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ioquake3
+spec:
+  type: {{ .Values.ioquake3.serviceType | default "NodePort" }}
+  ports:
+    - name: ioquake3
+      port: {{ .Values.ioquake3.port }}
+      targetPort: {{ .Values.ioquake3.port }}
+      protocol: UDP
+      {{- if .Values.ioquake3.nodePort }}
+      nodePort: {{ .Values.ioquake3.nodePort }}
+      {{- end }}
+  selector:
+    app: ioquake3
