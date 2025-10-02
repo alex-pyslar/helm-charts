@@ -1,6 +1,6 @@
 replicaCount: 1
-appVersion: "3.8.0"
-image: bitnami/kafka:3.8.0
+appVersion: "latest"
+image: bitnami/kafka:latest
 port:
   broker: 9092
   controller: 9093
