@@ -7,7 +7,7 @@ spec:
   capacity:
     storage: {{ .Values.persistence.size }}
   accessModes:
-    - {{ .Values.persistence.accessModes }}
+    {{- toYaml .Values.persistence.accessModes | nindent 4 }}
   persistentVolumeReclaimPolicy: Retain
   storageClassName: {{ .Values.persistence.storageClass }}
   local:
