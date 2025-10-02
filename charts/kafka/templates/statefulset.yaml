@@ -16,6 +16,7 @@ spec:
       containers:
         - name: kafka
           image: {{ .Values.image }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
           ports:
             - containerPort: {{ .Values.port.broker }}
             - containerPort: {{ .Values.port.controller }}
@@ -36,7 +37,7 @@ spec:
             - name: KAFKA_ADVERTISED_LISTENERS
               value: "PLAINTEXT://kafka-0.kafka-headless:{{ .Values.port.broker }}"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+              value: "CONTROLLER:PLAINTX,PLAINTEXT:PLAINTEXT"
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
               value: "PLAINTEXT"
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
@@ -44,7 +45,7 @@ spec:
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
               value: "0@kafka-0.kafka-headless:{{ .Values.port.controller }}"
             - name: KAFKA_LOG_DIRS
-              value: "/bitnami/kafka/data"
+              value: "/kafka/data"
           readinessProbe:
             tcpSocket:
               port: {{ .Values.port.broker }}
@@ -60,13 +61,13 @@ spec:
           command: ["/bin/bash", "-c"]
           args:
             - |
-              if [ ! -d /bitnami/kafka/data ]; then
-                mkdir -p /bitnami/kafka/data
+              if [ ! -d /kafka/data ]; then
+                mkdir -p /kafka/data
               fi
-              if [ ! -f /bitnami/kafka/data/meta.properties ]; then
-                /opt/bitnami/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /opt/bitnami/kafka/config/kraft/server.properties --directory /bitnami/kafka/data
+              if [ ! -f /kafka/data/meta.properties ]; then
+                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /opt/kafka/config/kraft/server.properties --directory /kafka/data
               fi
-              /opt/bitnami/kafka/bin/kafka-server-start.sh /opt/bitnami/kafka/config/kraft/server.properties \
+              /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties \
                 --override process.roles=$KAFKA_PROCESS_ROLES \
                 --override node.id=$KAFKA_NODE_ID \
                 --override listeners=$KAFKA_LISTENERS \
@@ -78,7 +79,7 @@ spec:
                 --override log.dirs=$KAFKA_LOG_DIRS
           volumeMounts:
             - name: kafka
-              mountPath: /bitnami/kafka/data
+              mountPath: /kafka/data
               subPath: kafka
       volumes:
         - name: kafka
