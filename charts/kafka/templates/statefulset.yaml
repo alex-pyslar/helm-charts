@@ -70,54 +70,53 @@ spec:
           args:
             - |
               if [ ! -d /kafka/data ]; then
-                mkdir -p /kafka/data
-                chown -R 1001:1001 /kafka/data
+                mkdir -R 1001:1001 /kafka/data
               fi
               if [ ! -d /kafka/data/logs ]; then
                 mkdir -p /kafka/data/logs
                 chown -R 1001:1001 /kafka/data/logs
               fi
               if [ ! -f /kafka/data/log4j2.properties ]; then
-                cat > /kafka/data/log4j2.properties << EOF
-                appenders=rolling
-                appender.rolling.name=ROLLING
-                appender.rolling.type=RollingFile
-                appender.rolling.fileName=/kafka/data/logs/kafka.log
-                appender.rolling.filePattern=/kafka/data/logs/kafka-%d{yyyy-MM-dd}.log
-                appender.rolling.layout.type=PatternLayout
-                appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
-                appender.rolling.policies.type=Policies
-                appender.rolling.policies.time.type=TimeBasedTriggeringPolicy
-                appender.rolling.policies.time.interval=1
-                appender.rolling.policies.time.modulate=true
-                appender.rolling.strategy.type=DefaultRolloverStrategy
-                appender.rolling.strategy.max=10
-                loggers=rolling
-                logger.rolling.name=kafka
-                logger.rolling.level=info
-                logger.rolling.additivity=false
-                logger.rolling.appenderRef.rolling.ref=ROLLING
-                rootLogger.level=info
-                rootLogger.appenderRef.rolling.ref=ROLLING
-                EOF
-                chown 1001:1001 /kafka/data/log4j2.properties
+                cat > /kafka/data/log4j2.properties <<EOF
+              appenders=rolling
+              appender.rolling.name=ROLLING
+              appender.rolling.type=RollingFile
+              appender.rolling.fileName=/kafka/data/logs/kafka.log
+              appender.rolling.filePattern=/kafka/data/logs/kafka-%d{yyyy-MM-dd}.log
+              appender.rolling.layout.type=PatternLayout
+              appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+              appender.rolling.policies.type=Policies
+              appender.rolling.policies.time.type=TimeBasedTriggeringPolicy
+              appender.rolling.policies.time.interval=1
+              appender.rolling.policies.time.modulate=true
+              appender.rolling.strategy.type=DefaultRolloverStrategy
+              appender.rolling.strategy.max=10
+              loggers=rolling
+              logger.rolling.name=kafka
+              logger.rolling.level=info
+              logger.rolling.additivity=false
+              logger.rolling.appenderRef.rolling.ref=ROLLING
+              rootLogger.level=info
+              rootLogger.appenderRef.rolling.ref=ROLLING
+              EOF
+              chown 1001:1001 /kafka/data/log4j2.properties
               fi
               if [ ! -f /kafka/data/meta.properties ]; then
-                cp /opt/kafka/config/kraft/server.properties /kafka/data/server.properties
-                echo "log.dirs=/kafka/data" >> /kafka/data/server.properties
-                chown 1001:1001 /kafka/data/server.properties
-                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
+              cp /opt/kafka/config/kraft/server.properties /kafka/data/server.properties
+              echo "log.dirs=/kafka/data" >> /kafka/data/server.properties
+              chown 1001:1001 /kafka/data/server.properties
+              /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
               fi
               /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties \
-                --override process.roles=$KAFKA_PROCESS_ROLES \
-                --override node.id=$KAFKA_NODE_ID \
-                --override listeners=$KAFKA_LISTENERS \
-                --override advertised.listeners=$KAFKA_ADVERTISED_LISTENERS \
-                --override listener.security.protocol.map=$KAFKA_LISTENER_SECURITY_PROTOCOL_MAP \
-                --override inter.broker.listener.name=$KAFKA_INTER_BROKER_LISTENER_NAME \
-                --override controller.listener.names=$KAFKA_CONTROLLER_LISTENER_NAMES \
-                --override controller.quorum.voters=$KAFKA_CONTROLLER_QUORUM_VOTERS \
-                --override log.dirs=$KAFKA_LOG_DIRS
+              --override process.roles=$KAFKA_PROCESS_ROLES \
+              --override node.id=$KAFKA_NODE_ID \
+              --override listeners=$KAFKA_LISTENERS \
+              --override advertised.listeners=$KAFKA_ADVERTISED_LISTENERS \
+              --override listener.security.protocol.map=$KAFKA_LISTENER_SECURITY_PROTOCOL_MAP \
+              --override inter.broker.listener.name=$KAFKA_INTER_BROKER_LISTENER_NAME \
+              --override controller.listener.names=$KAFKA_CONTROLLER_LISTENER_NAMES \
+              --override controller.quorum.voters=$KAFKA_CONTROLLER_QUORUM_VOTERS \
+              --override log.dirs=$KAFKA_LOG_DIRS
           volumeMounts:
             - name: kafka
               mountPath: /kafka/data
