@@ -6,7 +6,8 @@ metadata:
     app: kafka
 spec:
   storageClassName: {{ .Values.persistence.storageClass }}
-  accessModes: {{ .Values.persistence.accessModes | toYaml | nindent 4 }}
+  accessModes:
+    {{- toYaml .Values.persistence.accessModes | nindent 4 }}
   resources:
     requests:
       storage: {{ .Values.persistence.size }}

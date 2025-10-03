@@ -1,16 +1,16 @@
-# Default values for Kafka Helm chart
-replicaCount: 1
-appVersion: "3.8.0"
+replicaCount: 3
+
 image:
-  repository: apache/kafka
-  tag: "3.8.0"
+  repository: confluentinc/cp-kafka
+  tag: "7.8.0"
   pullPolicy: IfNotPresent
+
 imagePullSecrets: []
 
 serviceAccount:
   create: true
   annotations: {}
-  name: ""
+  name: "kafka-sa"
 
 ports:
   broker: 9092
@@ -20,24 +20,24 @@ ports:
 
 persistence:
   enabled: true
-  storageClass: "local-storage"
+  storageClass: "standard"
   accessModes:
     - ReadWriteOnce
-  size: 8Gi
+  size: 10Gi
   annotations: {}
 
 resources:
   requests:
-    memory: "1Gi"
     cpu: "500m"
-  limits:
     memory: "2Gi"
-    cpu: "1"
+  limits:
+    cpu: "1000m"
+    memory: "4Gi"
 
 podSecurityContext:
-  fsGroup: 1001
-  runAsUser: 1001
-  runAsGroup: 1001
+  fsGroup: 1000
+  runAsUser: 1000
+  runAsGroup: 1000
   runAsNonRoot: true
 
 containerSecurityContext:
@@ -54,27 +54,39 @@ cluster:
 log4j:
   level: "INFO"
   config: |
-    appenders=rolling
-    appender.rolling.name=ROLLING
-    appender.rolling.type=RollingFile
-    appender.rolling.fileName=/kafka/data/logs/kafka.log
-    appender.rolling.filePattern=/kafka/data/logs/kafka-%d{yyyy-MM-dd}.log
-    appender.rolling.layout.type=PatternLayout
-    appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
-    appender.rolling.policies.type=Policies
-    appender.rolling.policies.time.type=TimeBasedTriggeringPolicy
-    appender.rolling.policies.time.interval=1
-    appender.rolling.policies.time.modulate=true
-    appender.rolling.strategy.type=DefaultRolloverStrategy
-    appender.rolling.strategy.max=10
-    loggers=rolling
-    logger.rolling.name=kafka
-    logger.rolling.level=info
-    logger.rolling.additivity=false
-    logger.rolling.appenderRef.rolling.ref=ROLLING
-    rootLogger.level=info
-    rootLogger.appenderRef.rolling.ref=ROLLING
+    name: KafkaConfig
+    appenders:
+      rolling:
+        name: ROLLING
+        type: RollingFile
+        fileName: /kafka/data/logs/kafka.log
+        filePattern: /kafka/data/logs/kafka-%d{yyyy-MM-dd}.log
+        layout:
+          type: PatternLayout
+          pattern: "%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"
+        policies:
+          type: Policies
+          time:
+            type: TimeBasedTriggeringPolicy
+            interval: 1
+            modulate: true
+        strategy:
+          type: DefaultRolloverStrategy
+          max: 10
+    loggers:
+      rolling:
+        name: kafka
+        level: info
+        additivity: false
+        appenderRef:
+          rolling:
+            ref: ROLLING
+    rootLogger:
+      level: info
+      appenderRef:
+        rolling:
+          ref: ROLLING
 
+nodeSelector: {}
 tolerations: []
 affinity: {}
-nodeSelector: {}
