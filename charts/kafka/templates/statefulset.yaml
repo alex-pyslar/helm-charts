@@ -106,7 +106,7 @@ spec:
               chown 1001:1001 /kafka/data/server.properties
               /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
               fi
-              java -Xlog:off -Dlog4j2.configurationFile=file:/kafka/data/log4j2.properties \
+              java -Dlog4j2.configurationFile=file:/kafka/data/log4j2.properties \
               -cp /opt/kafka/libs/* \
               org.apache.kafka.server.KafkaServer \
               --override process.roles=$KAFKA_PROCESS_ROLES \
