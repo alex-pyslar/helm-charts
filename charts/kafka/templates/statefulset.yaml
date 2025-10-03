@@ -113,9 +113,11 @@ spec:
                 echo "log.dirs=/kafka/data" >> /kafka/data/server.properties
                 echo "log4j.appender.kafkaAppender.File=/kafka/data/logs/kafka.log" >> /kafka/data/server.properties
                 echo "log4j.appender.kafkaServerGcAppender.File=/kafka/data/logs/kafkaServer-gc.log" >> /kafka/data/server.properties
+                echo "log4j.rootLogger=INFO, stdout, kafkaAppender" >> /kafka/data/server.properties
                 chown 1001:1001 /kafka/data/server.properties
                 /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
               fi
+              # Run kafka-server-start.sh with custom log4j properties
               /opt/kafka/bin/kafka-server-start.sh /kafka/data/server.properties \
               --override process.roles=$KAFKA_PROCESS_ROLES \
               --override node.id=$KAFKA_NODE_ID \
@@ -125,7 +127,10 @@ spec:
               --override inter.broker.listener.name=$KAFKA_INTER_BROKER_LISTENER_NAME \
               --override controller.listener.names=$KAFKA_CONTROLLER_LISTENER_NAMES \
               --override controller.quorum.voters=$KAFKA_CONTROLLER_QUORUM_VOTERS \
-              --override log.dirs=$KAFKA_LOG_DIRS
+              --override log.dirs=$KAFKA_LOG_DIRS \
+              --override log4j.rootLogger=INFO,stdout,kafkaAppender \
+              --override log4j.appender.kafkaAppender.File=/kafka/data/logs/kafka.log \
+              --override log4j.appender.kafkaServerGcAppender.File=/kafka/data/logs/kafkaServer-gc.log
           volumeMounts:
             - name: kafka
               mountPath: /kafka/data
