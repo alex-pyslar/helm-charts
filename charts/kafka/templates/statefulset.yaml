@@ -53,7 +53,7 @@ spec:
             - name: KAFKA_LOG4J_OPTS
               value: "-Dlog4j2.configurationFile=file:/kafka/data/log4j2.properties"
             - name: KAFKA_OPTS
-              value: ""
+              value: "-Xlog:disable"
           readinessProbe:
             tcpSocket:
               port: {{ .Values.port.broker }}
@@ -110,6 +110,9 @@ spec:
                 chown 1001:1001 /kafka/data/server.properties
                 /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
               fi
+              # Override default log directory in kafka-server-start.sh
+              sed -i 's|log4j.appender.kafkaAppender.File=.*|log4j.appender.kafkaAppender.File=/kafka/data/logs/kafka.log|' /opt/kafka/config/log4j.properties
+              sed -i 's|log4j.appender.kafkaServerGcAppender.File=.*|log4j.appender.kafkaServerGcAppender.File=/kafka/data/logs/kafkaServer-gc.log|' /opt/kafka/config/log4j.properties
               /opt/kafka/bin/kafka-server-start.sh /kafka/data/server.properties \
               --override process.roles=$KAFKA_PROCESS_ROLES \
               --override node.id=$KAFKA_NODE_ID \
