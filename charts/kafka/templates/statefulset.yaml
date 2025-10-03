@@ -53,7 +53,7 @@ spec:
             - name: KAFKA_LOG4J_OPTS
               value: "-Dlog4j2.configurationFile=file:/kafka/data/log4j2.properties"
             - name: KAFKA_OPTS
-              value: "-Xlog:disable"
+              value: "-Xlog:none"
           readinessProbe:
             tcpSocket:
               port: {{ .Values.port.broker }}
@@ -70,7 +70,8 @@ spec:
           args:
             - |
               if [ ! -d /kafka/data ]; then
-                mkdir -R 1001:1001 /kafka/data
+                mkdir -p /kafka/data
+                chown -R 1001:1001 /kafka/data
               fi
               if [ ! -d /kafka/data/logs ]; then
                 mkdir -p /kafka/data/logs
