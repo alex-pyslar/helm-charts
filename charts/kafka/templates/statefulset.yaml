@@ -53,7 +53,7 @@ spec:
             - name: KAFKA_LOG4J_OPTS
               value: "-Dlog4j2.configurationFile=file:/kafka/data/log4j2.properties"
             - name: KAFKA_OPTS
-              value: ""
+              value: "-Xlog:disable"
           readinessProbe:
             tcpSocket:
               port: {{ .Values.port.broker }}
@@ -109,6 +109,9 @@ spec:
                 chown 1001:1001 /kafka/data/server.properties
                 /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
               fi
+              # Create logs directory with proper permissions
+              mkdir -p /kafka/logs
+              chown -R 1001:1001 /kafka/logs
               /opt/kafka/bin/kafka-server-start.sh /kafka/data/server.properties \
               --override process.roles=$KAFKA_PROCESS_ROLES \
               --override node.id=$KAFKA_NODE_ID \
@@ -122,7 +125,11 @@ spec:
           volumeMounts:
             - name: kafka
               mountPath: /kafka/data
+            - name: kafka-logs
+              mountPath: /kafka/logs
       volumes:
         - name: kafka
           persistentVolumeClaim:
             claimName: kafka
+        - name: kafka-logs
+          emptyDir: {}
