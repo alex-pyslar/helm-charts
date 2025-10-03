@@ -51,7 +51,7 @@ spec:
             - name: KAFKA_LOG_DIRS
               value: "/kafka/data"
             - name: KAFKA_LOG4J_OPTS
-              value: "-Dlog4j2.configurationFile=file:/opt/kafka/config/log4j2.properties -Xlog:gc*:file=/kafka/data/logs/kafkaServer-gc.log:time,tags:filecount=10,filesize=100M"
+              value: "-Dlog4j2.configurationFile=file:/kafka/data/log4j2.properties"
           readinessProbe:
             tcpSocket:
               port: {{ .Values.port.broker }}
@@ -75,8 +75,14 @@ spec:
                 mkdir -p /kafka/data/logs
                 chown -R 1001:1001 /kafka/data/logs
               fi
+              if [ ! -f /kafka/data/log4j2.properties ]; then
+                cp /opt/kafka/config/log4j2.properties /kafka/data/log4j2.properties
+                sed -i 's|appender.rolling.fileName=.*|appender.rolling.fileName=/kafka/data/logs/kafka.log|' /kafka/data/log4j2.properties
+              fi
               if [ ! -f /kafka/data/meta.properties ]; then
-                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /opt/kafka/config/kraft/server.properties
+                cp /opt/kafka/config/kraft/server.properties /kafka/data/server.properties
+                echo "log.dirs=/kafka/data" >> /kafka/data/server.properties
+                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
               fi
               /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties \
                 --override process.roles=$KAFKA_PROCESS_ROLES \
@@ -91,7 +97,6 @@ spec:
           volumeMounts:
             - name: kafka
               mountPath: /kafka/data
-              subPath: kafka
       volumes:
         - name: kafka
           persistentVolumeClaim:
