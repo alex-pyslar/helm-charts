@@ -43,7 +43,7 @@ spec:
                   name: kafka-config
                   key: clusterId
             - name: KAFKA_NODE_ID
-              value: "{{`{{ index .Pod.Labels `app.kubernetes.io/instance` | default `kafka` | replace `kafka-` `` | default `0` }}`}}"
+              value: "{{`{{ .Pod.Name | replace \"kafka-\" \"\" }}`}}"
             - name: KAFKA_PROCESS_ROLES
               value: "broker,controller"
             - name: KAFKA_LISTENERS
