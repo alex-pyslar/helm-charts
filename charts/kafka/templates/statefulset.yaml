@@ -102,6 +102,12 @@ spec:
               EOF
               chown 1001:1001 /kafka/data/log4j2.properties
               fi
+              if [ ! -f /kafka/data/log4j.properties ]; then
+                cp /opt/kafka/config/log4j.properties /kafka/data/log4j.properties
+                sed -i 's|log4j.appender.kafkaAppender.File=.*|log4j.appender.kafkaAppender.File=/kafka/data/logs/kafka.log|' /kafka/data/log4j.properties
+                sed -i 's|log4j.appender.kafkaServerGcAppender.File=.*|log4j.appender.kafkaServerGcAppender.File=/kafka/data/logs/kafkaServer-gc.log|' /kafka/data/log4j.properties
+                chown 1001:1001 /kafka/data/log4j.properties
+              fi
               if [ ! -f /kafka/data/meta.properties ]; then
                 cp /opt/kafka/config/kraft/server.properties /kafka/data/server.properties
                 echo "log.dirs=/kafka/data" >> /kafka/data/server.properties
@@ -110,9 +116,6 @@ spec:
                 chown 1001:1001 /kafka/data/server.properties
                 /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
               fi
-              # Override default log directory in kafka-server-start.sh
-              sed -i 's|log4j.appender.kafkaAppender.File=.*|log4j.appender.kafkaAppender.File=/kafka/data/logs/kafka.log|' /opt/kafka/config/log4j.properties
-              sed -i 's|log4j.appender.kafkaServerGcAppender.File=.*|log4j.appender.kafkaServerGcAppender.File=/kafka/data/logs/kafkaServer-gc.log|' /opt/kafka/config/log4j.properties
               /opt/kafka/bin/kafka-server-start.sh /kafka/data/server.properties \
               --override process.roles=$KAFKA_PROCESS_ROLES \
               --override node.id=$KAFKA_NODE_ID \
