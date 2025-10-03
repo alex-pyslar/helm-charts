@@ -2,5 +2,8 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: kafka-config
+  labels:
+    app: kafka
 data:
-  clusterId: {{ .Values.clusterId }}
+  clusterId: {{ .Values.cluster.id | quote }}
+  log4j2.properties: {{ .Values.log4j.config | nindent 4 }}

@@ -2,44 +2,54 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: kafka
+  labels:
+    app: kafka
 spec:
   serviceName: kafka-headless
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: kafka
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
   template:
     metadata:
       labels:
         app: kafka
     spec:
-      securityContext:
-        fsGroup: 1001
-        runAsUser: 1001
-        runAsGroup: 1001
+      serviceAccountName: {{ .Values.serviceAccount.name | default "kafka" }}
+      securityContext: {{ .Values.podSecurityContext | toYaml | nindent 8 }}
       containers:
         - name: kafka
-          image: {{ .Values.image }}
-          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext: {{ .Values.containerSecurityContext | toYaml | nindent 12 }}
           ports:
-            - containerPort: {{ .Values.port.broker }}
-            - containerPort: {{ .Values.port.controller }}
-          resources: {{ .Values.resources | toYaml | nindent 10 }}
+            - name: broker
+              containerPort: {{ .Values.ports.broker }}
+              protocol: TCP
+            - name: controller
+              containerPort: {{ .Values.ports.controller }}
+              protocol: TCP
           env:
             - name: POD_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
             - name: CLUSTER_ID
-              value: {{ .Values.clusterId }}
+              valueFrom:
+                configMapKeyRef:
+                  name: kafka-config
+                  key: clusterId
             - name: KAFKA_NODE_ID
-              value: "0"
+              value: "{{`{{ index .Pod.Labels `app.kubernetes.io/instance` | default `kafka` | replace `kafka-` `` | default `0` }}`}}"
             - name: KAFKA_PROCESS_ROLES
               value: "broker,controller"
             - name: KAFKA_LISTENERS
-              value: "PLAINTEXT://:{{ .Values.port.broker }},CONTROLLER://:{{ .Values.port.controller }}"
+              value: "PLAINTEXT://0.0.0.0:{{ .Values.ports.broker }},CONTROLLER://0.0.0.0:{{ .Values.ports.controller }}"
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: "PLAINTEXT://kafka-0.kafka-headless:{{ .Values.port.broker }}"
+              value: "PLAINTEXT://{{`{{ .Pod.Name }}`}}.{{ .Values.cluster.domain }}:{{ .Values.ports.broker }}"
             - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
               value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
             - name: KAFKA_INTER_BROKER_LISTENER_NAME
@@ -47,94 +57,73 @@ spec:
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
               value: "CONTROLLER"
             - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: "0@kafka-0.kafka-headless:{{ .Values.port.controller }}"
+              value: "{{ range $i, $e := until (int .Values.replicaCount) }}{{ $i }}@kafka-{{ $i }}.{{ $.Values.cluster.domain }}:{{ $.Values.ports.controller }}{{ if ne $i (sub (int $.Values.replicaCount) 1) }},{{ end }}{{ end }}"
             - name: KAFKA_LOG_DIRS
               value: "/kafka/data"
             - name: KAFKA_LOG4J_OPTS
-              value: "-Dlog4j2.configurationFile=file:/kafka/data/log4j2.properties"
+              value: "-Dlog4j2.configurationFile=file:/kafka/config/log4j2.properties"
             - name: KAFKA_OPTS
               value: "-Xlog:disable"
+          resources: {{ .Values.resources | toYaml | nindent 12 }}
           readinessProbe:
             tcpSocket:
-              port: {{ .Values.port.broker }}
+              port: {{ .Values.ports.broker }}
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 6
           livenessProbe:
             tcpSocket:
-              port: {{ .Values.port.broker }}
+              port: {{ .Values.ports.broker }}
             initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 8
+          volumeMounts:
+            - name: kafka-data
+              mountPath: /kafka/data
+            - name: kafka-config
+              mountPath: /kafka/config
           command: ["/bin/bash", "-c"]
           args:
             - |
-              if [ ! -d /kafka/data ]; then
-                mkdir -p /kafka/data
-                chown -R 1001:1001 /kafka/data
-              fi
-              if [ ! -d /kafka/data/logs ]; then
-                mkdir -p /kafka/data/logs
-                chown -R 1001:1001 /kafka/data/logs
-              fi
-              if [ ! -f /kafka/data/log4j2.properties ]; then
-                cat > /kafka/data/log4j2.properties <<EOF
-              appenders=rolling
-              appender.rolling.name=ROLLING
-              appender.rolling.type=RollingFile
-              appender.rolling.fileName=/kafka/data/logs/kafka.log
-              appender.rolling.filePattern=/kafka/data/logs/kafka-%d{yyyy-MM-dd}.log
-              appender.rolling.layout.type=PatternLayout
-              appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
-              appender.rolling.policies.type=Policies
-              appender.rolling.policies.time.type=TimeBasedTriggeringPolicy
-              appender.rolling.policies.time.interval=1
-              appender.rolling.policies.time.modulate=true
-              appender.rolling.strategy.type=DefaultRolloverStrategy
-              appender.rolling.strategy.max=10
-              loggers=rolling
-              logger.rolling.name=kafka
-              logger.rolling.level=info
-              logger.rolling.additivity=false
-              logger.rolling.appenderRef.rolling.ref=ROLLING
-              rootLogger.level=info
-              rootLogger.appenderRef.rolling.ref=ROLLING
-              EOF
+              # Ensure data directory exists with correct permissions
+              mkdir -p /kafka/data /kafka/data/logs
+              chown -R 1001:1001 /kafka/data
+              # Copy log4j configuration from ConfigMap
+              cp /kafka/config/log4j2.properties /kafka/data/log4j2.properties
               chown 1001:1001 /kafka/data/log4j2.properties
-              fi
-              if [ ! -f /kafka/data/log4j.properties ]; then
-                cp /opt/kafka/config/log4j.properties /kafka/data/log4j.properties
-                sed -i 's|log4j.appender.kafkaAppender.File=.*|log4j.appender.kafkaAppender.File=/kafka/data/logs/kafka.log|' /kafka/data/log4j.properties
-                sed -i 's|log4j.appender.kafkaServerGcAppender.File=.*|log4j.appender.kafkaServerGcAppender.File=/kafka/data/logs/kafkaServer-gc.log|' /kafka/data/log4j.properties
-                chown 1001:1001 /kafka/data/log4j.properties
-              fi
+              # Format storage if meta.properties does not exist
               if [ ! -f /kafka/data/meta.properties ]; then
-                cp /opt/kafka/config/kraft/server.properties /kafka/data/server.properties
-                echo "log.dirs=/kafka/data" >> /kafka/data/server.properties
-                echo "log4j.appender.kafkaAppender.File=/kafka/data/logs/kafka.log" >> /kafka/data/server.properties
-                echo "log4j.appender.kafkaServerGcAppender.File=/kafka/data/logs/kafkaServer-gc.log" >> /kafka/data/server.properties
-                echo "log4j.rootLogger=INFO, stdout, kafkaAppender" >> /kafka/data/server.properties
-                chown 1001:1001 /kafka/data/server.properties
-                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
+                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /opt/kafka/config/kraft/server.properties
               fi
-              # Run kafka-server-start.sh with custom log4j properties
-              /opt/kafka/bin/kafka-server-start.sh /kafka/data/server.properties \
-              --override process.roles=$KAFKA_PROCESS_ROLES \
-              --override node.id=$KAFKA_NODE_ID \
-              --override listeners=$KAFKA_LISTENERS \
-              --override advertised.listeners=$KAFKA_ADVERTISED_LISTENERS \
-              --override listener.security.protocol.map=$KAFKA_LISTENER_SECURITY_PROTOCOL_MAP \
-              --override inter.broker.listener.name=$KAFKA_INTER_BROKER_LISTENER_NAME \
-              --override controller.listener.names=$KAFKA_CONTROLLER_LISTENER_NAMES \
-              --override controller.quorum.voters=$KAFKA_CONTROLLER_QUORUM_VOTERS \
-              --override log.dirs=$KAFKA_LOG_DIRS \
-              --override log4j.rootLogger=INFO,stdout,kafkaAppender \
-              --override log4j.appender.kafkaAppender.File=/kafka/data/logs/kafka.log \
-              --override log4j.appender.kafkaServerGcAppender.File=/kafka/data/logs/kafkaServer-gc.log
-          volumeMounts:
-            - name: kafka
-              mountPath: /kafka/data
+              # Start Kafka server
+              exec /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties \
+                --override process.roles=$KAFKA_PROCESS_ROLES \
+                --override node.id=$KAFKA_NODE_ID \
+                --override listeners=$KAFKA_LISTENERS \
+                --override advertised.listeners=$KAFKA_ADVERTISED_LISTENERS \
+                --override listener.security.protocol.map=$KAFKA_LISTENER_SECURITY_PROTOCOL_MAP \
+                --override inter.broker.listener.name=$KAFKA_INTER_BROKER_LISTENER_NAME \
+                --override controller.listener.names=$KAFKA_CONTROLLER_LISTENER_NAMES \
+                --override controller.quorum.voters=$KAFKA_CONTROLLER_QUORUM_VOTERS \
+                --override log.dirs=$KAFKA_LOG_DIRS
       volumes:
-        - name: kafka
+        - name: kafka-config
+          configMap:
+            name: kafka-config
+      {{- if .Values.persistence.enabled }}
+        - name: kafka-data
           persistentVolumeClaim:
             claimName: kafka
+      {{- else }}
+        - name: kafka-data
+          emptyDir: {}
+      {{- end }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{ .Values.nodeSelector | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: {{ .Values.affinity | toYaml | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations: {{ .Values.tolerations | toYaml | nindent 8 }}
+      {{- end }}

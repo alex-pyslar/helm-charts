@@ -1,19 +1,31 @@
+# Default values for Kafka Helm chart
 replicaCount: 1
 appVersion: "3.8.0"
-image: apache/kafka:3.8.0
-imagePullPolicy: IfNotPresent
-port:
+image:
+  repository: apache/kafka
+  tag: "3.8.0"
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+ports:
   broker: 9092
   controller: 9093
-nodePort: 30020
-clusterId: "4L6g3nShT-eMCtK--X86sw"
-rootPassword: kafka-secret
+  external:
+    nodePort: 30020
+
 persistence:
   enabled: true
-  storageClass: local-storage
+  storageClass: "local-storage"
   accessModes:
     - ReadWriteOnce
   size: 8Gi
+  annotations: {}
+
 resources:
   requests:
     memory: "1Gi"
@@ -21,3 +33,48 @@ resources:
   limits:
     memory: "2Gi"
     cpu: "1"
+
+podSecurityContext:
+  fsGroup: 1001
+  runAsUser: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+cluster:
+  id: "4L6g3nShT-eMCtK--X86sw"
+  domain: "kafka-headless.default.svc.cluster.local"
+
+log4j:
+  level: "INFO"
+  config: |
+    appenders=rolling
+    appender.rolling.name=ROLLING
+    appender.rolling.type=RollingFile
+    appender.rolling.fileName=/kafka/data/logs/kafka.log
+    appender.rolling.filePattern=/kafka/data/logs/kafka-%d{yyyy-MM-dd}.log
+    appender.rolling.layout.type=PatternLayout
+    appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+    appender.rolling.policies.type=Policies
+    appender.rolling.policies.time.type=TimeBasedTriggeringPolicy
+    appender.rolling.policies.time.interval=1
+    appender.rolling.policies.time.modulate=true
+    appender.rolling.strategy.type=DefaultRolloverStrategy
+    appender.rolling.strategy.max=10
+    loggers=rolling
+    logger.rolling.name=kafka
+    logger.rolling.level=info
+    logger.rolling.additivity=false
+    logger.rolling.appenderRef.rolling.ref=ROLLING
+    rootLogger.level=info
+    rootLogger.appenderRef.rolling.ref=ROLLING
+
+tolerations: []
+affinity: {}
+nodeSelector: {}
