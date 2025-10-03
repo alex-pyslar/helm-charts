@@ -78,8 +78,28 @@ spec:
                 chown -R 1001:1001 /kafka/data/logs
               fi
               if [ ! -f /kafka/data/log4j2.properties ]; then
-                cp /opt/kafka/config/log4j2.properties /kafka/data/log4j2.properties
-                sed -i 's|appender.rolling.fileName=.*|appender.rolling.fileName=/kafka/data/logs/kafka.log|' /kafka/data/log4j2.properties
+                cat > /kafka/data/log4j2.properties << EOF
+                appenders=rolling
+                appender.rolling.name=ROLLING
+                appender.rolling.type=RollingFile
+                appender.rolling.fileName=/kafka/data/logs/kafka.log
+                appender.rolling.filePattern=/kafka/data/logs/kafka-%d{yyyy-MM-dd}.log
+                appender.rolling.layout.type=PatternLayout
+                appender.rolling.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+                appender.rolling.policies.type=Policies
+                appender.rolling.policies.time.type=TimeBasedTriggeringPolicy
+                appender.rolling.policies.time.interval=1
+                appender.rolling.policies.time.modulate=true
+                appender.rolling.strategy.type=DefaultRolloverStrategy
+                appender.rolling.strategy.max=10
+                loggers=rolling
+                logger.rolling.name=kafka
+                logger.rolling.level=info
+                logger.rolling.additivity=false
+                logger.rolling.appenderRef.rolling.ref=ROLLING
+                rootLogger.level=info
+                rootLogger.appenderRef.rolling.ref=ROLLING
+                EOF
                 chown 1001:1001 /kafka/data/log4j2.properties
               fi
               if [ ! -f /kafka/data/meta.properties ]; then
