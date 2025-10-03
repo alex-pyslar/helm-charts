@@ -53,7 +53,7 @@ spec:
             - name: KAFKA_LOG4J_OPTS
               value: "-Dlog4j2.configurationFile=file:/kafka/data/log4j2.properties"
             - name: KAFKA_OPTS
-              value: "-Xlog:disable"
+              value: ""
           readinessProbe:
             tcpSocket:
               port: {{ .Values.port.broker }}
@@ -103,10 +103,11 @@ spec:
               chown 1001:1001 /kafka/data/log4j2.properties
               fi
               if [ ! -f /kafka/data/meta.properties ]; then
-              cp /opt/kafka/config/kraft/server.properties /kafka/data/server.properties
-              echo "log.dirs=/kafka/data" >> /kafka/data/server.properties
-              chown 1001:1001 /kafka/data/server.properties
-              /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
+                cp /opt/kafka/config/kraft/server.properties /kafka/data/server.properties
+                echo "log.dirs=/kafka/data" >> /kafka/data/server.properties
+                echo "log4j.appender.kafkaAppender.File=/kafka/data/logs/kafka.log" >> /kafka/data/server.properties
+                chown 1001:1001 /kafka/data/server.properties
+                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /kafka/data/server.properties
               fi
               /opt/kafka/bin/kafka-server-start.sh /kafka/data/server.properties \
               --override process.roles=$KAFKA_PROCESS_ROLES \
