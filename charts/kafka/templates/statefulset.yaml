@@ -18,7 +18,6 @@ spec:
       labels:
         app: kafka
     spec:
-      serviceAccountName: {{ .Values.serviceAccount.name }}
       securityContext:
         fsGroup: 1000
         runAsGroup: 1000
@@ -69,7 +68,7 @@ spec:
             - name: KAFKA_LOG_DIRS
               value: "/kafka/data"
             - name: KAFKA_LOG4J_OPTS
-              value: "-Dlog4j2.configurationFile=file:/kafka/config/log4j2.properties"
+              value: "-Dlog4j2.configurationFile=file:/etc/kafka/log4j2.properties"
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:
@@ -88,17 +87,16 @@ spec:
             - name: kafka-data
               mountPath: /kafka/data
             - name: kafka-config
-              mountPath: /kafka/config
+              mountPath: /etc/kafka
           command: ["/bin/bash", "-c"]
           args:
             - |
               mkdir -p /kafka/data/logs
               chmod -R 770 /kafka/data/logs
-              cp /kafka/config/log4j2.properties /opt/kafka/config/log4j2.properties
               if [ ! -f /kafka/data/meta.properties ]; then
-                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /opt/kafka/config/server.properties
+                /usr/bin/kafka-storage.sh format -t $CLUSTER_ID -c /etc/kafka/server.properties
               fi
-              exec /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/server.properties \
+              exec /usr/bin/kafka-server-start.sh /etc/kafka/server.properties \
                 --override process.roles=$KAFKA_PROCESS_ROLES \
                 --override node.id=$KAFKA_NODE_ID \
                 --override listeners=$KAFKA_LISTENERS \
