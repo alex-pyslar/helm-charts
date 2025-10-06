@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: coredns
 data:
-  Corefile: {{ .Values.corefile | nindent 4 }}
+  Corefile: {{ .Values.corefile | quote }}
 {{- range $key, $value := .Values.zoneFiles }}
   {{ $key }}: {{ $value | quote }}
 {{- end }}

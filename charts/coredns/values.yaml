@@ -35,6 +35,7 @@ corefile: |
       ready :{{ .Values.ports.ready }}
       prometheus 0.0.0.0:{{ .Values.ports.metrics }}
       file /etc/coredns/zones/db.velesoft.ru velesoft.ru
+      reload
       log
       loop
   }
