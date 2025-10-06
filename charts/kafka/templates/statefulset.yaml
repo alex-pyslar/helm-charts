@@ -21,9 +21,9 @@ spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       securityContext:
         fsGroup: 1000
-        runAsUser: 1000
         runAsGroup: 1000
         runAsNonRoot: true
+        runAsUser: 1000
         fsGroupChangePolicy: OnRootMismatch
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

@@ -1,18 +1,66 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: kafka
+  name: kafka-0
   labels:
     app: kafka
 spec:
   capacity:
-    storage: {{ .Values.persistence.size }}
+    storage: 10Gi
   accessModes:
-    {{- toYaml .Values.persistence.accessModes | nindent 4 }}
+    - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: {{ .Values.persistence.storageClass }}
+  storageClassName: standard
   local:
-    path: /mnt/disks/kafka
+    path: /mnt/disks/kafka-0
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s-main
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kafka-1
+  labels:
+    app: kafka
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  local:
+    path: /mnt/disks/kafka-1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - k8s-main
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kafka-2
+  labels:
+    app: kafka
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  local:
+    path: /mnt/disks/kafka-2
   nodeAffinity:
     required:
       nodeSelectorTerms:
