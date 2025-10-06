@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: coredns
+spec:
+  type: NodePort
+  ports:
+    - name: dns-udp
+      port: {{ .Values.ports.dns }}
+      targetPort: {{ .Values.ports.dns }}
+      nodePort: {{ .Values.ports.dnsNodePort }}
+      protocol: UDP
+    - name: dns-tcp
+      port: {{ .Values.ports.dns }}
+      targetPort: {{ .Values.ports.dns }}
+      nodePort: {{ .Values.ports.dnsNodePort }}
+      protocol: TCP
+    - name: metrics
+      port: {{ .Values.ports.metrics }}
+      targetPort: {{ .Values.ports.metrics }}
+      nodePort: {{ .Values.ports.metricsNodePort }}
+  selector:
+    app: coredns

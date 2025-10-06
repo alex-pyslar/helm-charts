@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+data:
+  Corefile: {{ .Values.corefile | nindent 4 }}
+{{- range $key, $value := .Values.zoneFiles }}
+  {{ $key }}: {{ $value | nindent 4 }}
+{{- end }}

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coredns
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: coredns
+  template:
+    metadata:
+      labels:
+        app: coredns
+    spec:
+      containers:
+        - name: coredns
+          image: {{ .Values.image }}
+          ports:
+            - containerPort: {{ .Values.ports.dns }}
+              name: dns
+              protocol: UDP
+            - containerPort: {{ .Values.ports.dns }}
+              name: dns-tcp
+              protocol: TCP
+            - containerPort: {{ .Values.ports.metrics }}
+              name: metrics
+          args:
+            - -conf
+            - /etc/coredns/Corefile
+          volumeMounts:
+            - name: config
+              mountPath: /etc/coredns
+            {{- if .Values.persistence.enabled }}
+            - name: coredns-data
+              mountPath: /etc/coredns/zones
+              subPath: zones
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.ports.health }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: {{ .Values.ports.ready }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources: {{ .Values.resources.coredns | toYaml | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: coredns
+        {{- if .Values.persistence.enabled }}
+        - name: coredns-data
+          persistentVolumeClaim:
+            claimName: coredns
+        {{- else }}
+        - name: coredns-data
+          emptyDir: {}
+        {{- end }}

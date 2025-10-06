@@ -1,0 +1,68 @@
+# Количество реплик (1 для теста, 2+ для продакшн)
+replicas: 1
+
+# Образ CoreDNS
+image: coredns/coredns:1.11.1
+
+# Порты: DNS (53), метрики, health/ready проверки
+ports:
+  dns: 53
+  dnsNodePort: 30053
+  metrics: 9153
+  metricsNodePort: 30054
+  health: 8080
+  ready: 8181
+
+# Настройки персистентного хранилища (аналог Redis)
+persistence:
+  enabled: true
+  storageClass: local-storage
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  localPath: /mnt/disks/coredns
+  nodeAffinityHostname: k8s-main  # Замени на имя твоего узла
+
+# Ресурсы для CoreDNS
+resources:
+  coredns:
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+
+# Corefile: конфигурация CoreDNS (authoritative для example.com)
+corefile: |
+  .:{{ .Values.ports.dns }} {
+      errors
+      health :{{ .Values.ports.health }}
+      ready :{{ .Values.ports.ready }}
+      prometheus 0.0.0.0:{{ .Values.ports.metrics }}
+      file /etc/coredns/zones/db.example.com example.com
+      log
+      loop
+  }
+
+# Zone-файл для твоего домена
+zoneFiles:
+  db.example.com: |
+    $ORIGIN example.com.
+    @ 3600 IN SOA ns1.example.com. admin.example.com. (
+      2025100601  ; Serial (обновляй при изменениях: YYYYMMDDNN)
+      7200         ; Refresh
+      3600         ; Retry
+      1209600      ; Expire
+      3600 )       ; Minimum TTL
+
+    @ 3600 IN NS ns1.example.com.
+    @ 3600 IN NS ns2.example.com.  # Для второй реплики, если replicas > 1
+
+    ns1 3600 IN A YOUR_EXTERNAL_IP  ; Замени на IP сервиса (kubectl get svc)
+    ns2 3600 IN A YOUR_SECOND_IP    ; Для второй реплики, если есть
+
+    ; Пример записей для твоего домена
+    www 3600 IN A YOUR_EXTERNAL_IP
+    mail 3600 IN MX 10 mail.example.com.
+    mail 3600 IN A YOUR_EXTERNAL_IP
