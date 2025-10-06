@@ -20,7 +20,11 @@ spec:
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        fsGroupChangePolicy: OnRootMismatch
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
@@ -37,8 +41,7 @@ spec:
           volumeMounts:
             - name: kafka-data
               mountPath: /kafka/data
-          securityContext:
-            runAsUser: 0
+          securityContext: {}
       containers:
         - name: kafka
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -126,14 +129,6 @@ spec:
         - name: kafka-config
           configMap:
             name: kafka-config
-      {{- if .Values.persistence.enabled }}
-        - name: kafka-data
-          persistentVolumeClaim:
-            claimName: kafka
-      {{- else }}
-        - name: kafka-data
-          emptyDir: {}
-      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -146,3 +141,13 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: kafka-data
+      spec:
+        storageClassName: {{ .Values.persistence.storageClass }}
+        accessModes:
+          {{- toYaml .Values.persistence.accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
