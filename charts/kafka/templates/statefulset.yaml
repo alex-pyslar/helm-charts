@@ -69,6 +69,8 @@ spec:
               value: "/kafka/data"
             - name: KAFKA_LOG4J_OPTS
               value: "-Dlog4j2.configurationFile=file:/etc/kafka/log4j2.properties"
+            - name: LOG4J_CONFIGURATION_FILE
+              value: "file:/etc/kafka/log4j2.properties"
             - name: KAFKA_PORT
               value: ""
           resources:
