@@ -69,6 +69,8 @@ spec:
               value: "/kafka/data"
             - name: KAFKA_LOG4J_OPTS
               value: "-Dlog4j.configuration=file:/etc/kafka/log4j2.properties"
+            - name: KAFKA_PORT
+              value: ""
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           readinessProbe:
