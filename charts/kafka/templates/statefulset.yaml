@@ -97,10 +97,7 @@ spec:
             - |
               mkdir -p /kafka/data/logs
               chmod -R 770 /kafka/data/logs
-              if [ ! -f /kafka/data/meta.properties ]; then
-                /opt/kafka/bin/kafka-storage.sh format -t $CLUSTER_ID -c /etc/kafka/kraft/server.properties
-              fi
-              exec /opt/kafka/bin/kafka-server-start.sh /etc/kafka/kraft/server.properties \
+              exec /usr/local/bin/docker-entrypoint.sh kafka-server-start.sh /etc/kafka/kraft/server.properties \
                 --override process.roles=$KAFKA_PROCESS_ROLES \
                 --override node.id=$KAFKA_NODE_ID \
                 --override listeners=$KAFKA_LISTENERS \
