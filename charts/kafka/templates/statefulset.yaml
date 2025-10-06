@@ -68,7 +68,7 @@ spec:
             - name: KAFKA_LOG_DIRS
               value: "/kafka/data"
             - name: KAFKA_LOG4J_OPTS
-              value: "-Dlog4j2.configurationFile=file:/etc/kafka/custom-kafka.properties"
+              value: "-Dlog4j2.configurationFile=file:/etc/kafka/log4j2.properties"
             - name: KAFKA_PORT
               value: ""
           resources:
@@ -89,8 +89,8 @@ spec:
             - name: kafka-data
               mountPath: /kafka/data
             - name: kafka-config
-              mountPath: /etc/kafka/custom-kafka.properties
-              subPath: kafka.properties
+              mountPath: /etc/kafka/log4j2.properties
+              subPath: log4j2.properties
           command: ["/bin/bash", "-c"]
           args:
             - |

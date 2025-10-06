@@ -6,10 +6,12 @@ metadata:
     app: kafka
 data:
   clusterId: {{ .Values.cluster.id | quote }}
-  kafka.properties: |
-    name=stdout
-    appender=org.apache.log4j.ConsoleAppender
-    layout=org.apache.log4j.PatternLayout
-    layout.conversionPattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
+  log4j2.properties: |
+    appenders=console
+    appender.console.type=Console
+    appender.console.name=STDOUT
+    appender.console.layout.type=PatternLayout
+    appender.console.layout.pattern=%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
     rootLogger.level=INFO
-    rootLogger.appenderNames=stdout
+    rootLogger.appenderRefs=console
+    rootLogger.appenderRef.console.ref=STDOUT
