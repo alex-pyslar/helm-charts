@@ -39,6 +39,7 @@ podSecurityContext:
   runAsUser: 1000
   runAsGroup: 1000
   runAsNonRoot: true
+  fsGroupChangePolicy: OnRootMismatch
 
 containerSecurityContext:
   allowPrivilegeEscalation: false
@@ -87,6 +88,8 @@ log4j:
         rolling:
           ref: ROLLING
 
-nodeSelector: {}
+nodeSelector:
+  kubernetes.io/hostname: k8s-main
+
 tolerations: []
 affinity: {}
