@@ -129,7 +129,7 @@ spec:
       {{- if .Values.persistence.enabled }}
         - name: kafka-data
           persistentVolumeClaim:
-            claimName: kafka-pvc
+            claimName: kafka
       {{- else }}
         - name: kafka-data
           emptyDir: {}
