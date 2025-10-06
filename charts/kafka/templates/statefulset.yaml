@@ -89,15 +89,18 @@ spec:
             - name: kafka-config
               mountPath: /etc/kafka/log4j2.properties
               subPath: log4j2.properties
+            - name: kafka-config
+              mountPath: /etc/kafka/kraft/server.properties
+              subPath: server.properties
           command: ["/bin/bash", "-c"]
           args:
             - |
               mkdir -p /kafka/data/logs
               chmod -R 770 /kafka/data/logs
               if [ ! -f /kafka/data/meta.properties ]; then
-                /usr/bin/kafka-storage.sh format -t $CLUSTER_ID -c /etc/kafka/server.properties
+                kafka-storage.sh format -t $CLUSTER_ID -c /etc/kafka/kraft/server.properties
               fi
-              exec /usr/bin/kafka-server-start.sh /etc/kafka/server.properties \
+              exec kafka-server-start.sh /etc/kafka/kraft/server.properties \
                 --override process.roles=$KAFKA_PROCESS_ROLES \
                 --override node.id=$KAFKA_NODE_ID \
                 --override listeners=$KAFKA_LISTENERS \
