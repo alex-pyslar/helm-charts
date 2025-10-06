@@ -6,7 +6,7 @@ metadata:
     app: kafka
 data:
   clusterId: {{ .Values.cluster.id | quote }}
-  kafka.properties: |
+  log4j2.properties: |
     log4j.rootLogger=INFO, stdout
     log4j.appender.stdout=org.apache.log4j.ConsoleAppender
     log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
