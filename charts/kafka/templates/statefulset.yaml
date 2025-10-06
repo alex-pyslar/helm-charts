@@ -97,7 +97,7 @@ spec:
             - |
               mkdir -p /kafka/data/logs
               chmod -R 770 /kafka/data/logs
-              exec /usr/local/bin/docker-entrypoint.sh kafka-server-start.sh /etc/kafka/kraft/server.properties \
+              exec /opt/kafka/bin/kafka-server-start.sh /etc/kafka/kraft/server.properties \
                 --override process.roles=$KAFKA_PROCESS_ROLES \
                 --override node.id=$KAFKA_NODE_ID \
                 --override listeners=$KAFKA_LISTENERS \
