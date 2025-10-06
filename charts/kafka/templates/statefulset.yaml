@@ -87,7 +87,8 @@ spec:
             - name: kafka-data
               mountPath: /kafka/data
             - name: kafka-config
-              mountPath: /etc/kafka
+              mountPath: /etc/kafka/log4j2.properties
+              subPath: log4j2.properties
           command: ["/bin/bash", "-c"]
           args:
             - |
