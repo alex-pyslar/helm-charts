@@ -89,24 +89,12 @@ spec:
             - name: kafka-config
               mountPath: /etc/kafka/log4j2.properties
               subPath: log4j2.properties
-            - name: kafka-config
-              mountPath: /etc/kafka/kraft/server.properties
-              subPath: server.properties
           command: ["/bin/bash", "-c"]
           args:
             - |
               mkdir -p /kafka/data/logs
               chmod -R 770 /kafka/data/logs
-              exec /opt/kafka/bin/kafka-server-start.sh /etc/kafka/kraft/server.properties \
-                --override process.roles=$KAFKA_PROCESS_ROLES \
-                --override node.id=$KAFKA_NODE_ID \
-                --override listeners=$KAFKA_LISTENERS \
-                --override advertised.listeners=$KAFKA_ADVERTISED_LISTENERS \
-                --override listener.security.protocol.map=$KAFKA_LISTENER_SECURITY_PROTOCOL_MAP \
-                --override inter.broker.listener.name=$KAFKA_INTER_BROKER_LISTENER_NAME \
-                --override controller.listener.names=$KAFKA_CONTROLLER_LISTENER_NAMES \
-                --override controller.quorum.voters=$KAFKA_CONTROLLER_QUORUM_VOTERS \
-                --override log.dirs=$KAFKA_LOG_DIRS
+              exec /etc/confluent/docker/run
       volumes:
         - name: kafka-config
           configMap:
