@@ -5,11 +5,7 @@ image:
   tag: "7.8.0"
   pullPolicy: IfNotPresent
 
-imagePullSecrets: []
-
 serviceAccount:
-  create: true
-  annotations: {}
   name: "kafka-sa"
 
 ports:
@@ -19,12 +15,10 @@ ports:
     nodePort: 30020
 
 persistence:
-  enabled: true
   storageClass: "standard"
   accessModes:
     - ReadWriteOnce
   size: 10Gi
-  annotations: {}
 
 resources:
   requests:
@@ -52,44 +46,5 @@ cluster:
   id: "4L6g3nShT-eMCtK--X86sw"
   domain: "kafka-headless.default.svc.cluster.local"
 
-log4j:
-  level: "INFO"
-  config: |
-    name: KafkaConfig
-    appenders:
-      rolling:
-        name: ROLLING
-        type: RollingFile
-        fileName: /kafka/data/logs/kafka.log
-        filePattern: /kafka/data/logs/kafka-%d{yyyy-MM-dd}.log
-        layout:
-          type: PatternLayout
-          pattern: "%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"
-        policies:
-          type: Policies
-          time:
-            type: TimeBasedTriggeringPolicy
-            interval: 1
-            modulate: true
-        strategy:
-          type: DefaultRolloverStrategy
-          max: 10
-    loggers:
-      rolling:
-        name: kafka
-        level: info
-        additivity: false
-        appenderRef:
-          rolling:
-            ref: ROLLING
-    rootLogger:
-      level: info
-      appenderRef:
-        rolling:
-          ref: ROLLING
-
 nodeSelector:
   kubernetes.io/hostname: k8s-main
-
-tolerations: []
-affinity: {}
