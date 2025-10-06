@@ -14,12 +14,6 @@ data:
     appender.console.name = STDOUT
     appender.console.layout.type = PatternLayout
     appender.console.layout.pattern = %d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
-    rootLogger = ERROR, stdout
-    appender.stdout = org.apache.log4j.ConsoleAppender
-    appender.stdout.Target = System.out
-    appender.stdout.layout = org.apache.log4j.PatternLayout
-    appender.stdout.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n
-    logger.my.test.logger=INFO
     rootLogger.level = INFO
     rootLogger.appenderRefs = console
     rootLogger.appenderRef.console.ref = STDOUT
