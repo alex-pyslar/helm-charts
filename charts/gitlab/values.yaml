@@ -4,19 +4,19 @@ image:
   pullPolicy: IfNotPresent
 
 psql:
-  host: "127.0.0.1"
+  host: "10.66.66.11"
   port: 30001
   database: "gitlabhq_production"
   username: "postgres"
   password: "supersecret"
 
 redis:
-  host: "127.0.0.1"
+  host: "10.66.66.11"
   port: 30007
   password: "redis-secret"
 
 minio:
-  host: "127.0.0.1"
+  host: "10.66.66.11"
   port: 30014
   accessKey: "minioadmin"
   secretKey: "minio-secret-key"
