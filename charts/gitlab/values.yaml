@@ -27,14 +27,6 @@ global:
     domain: "gitlab.velesoft.ru"
     https: false
     nodeIp: "10.66.66.11"
-  ingress:
-    enabled: false
-    class: "nginx"
-    annotations:
-      kubernetes.io/ingress.class: nginx
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      nginx.ingress.kubernetes.io/ssl-redirect: "true"
-      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
   appConfig:
     objectStorage:
       enabled: true
