@@ -3,12 +3,11 @@ kind: Service
 metadata:
   name: gitlab
 spec:
-  type: {{ .Values.service.type }}
+  type: NodePort
   ports:
-    - port: {{ .Values.service.port }}
+    - port: 80
       targetPort: 80
-      nodePort: {{ .Values.service.nodePort }}
+      nodePort: 30088
       protocol: TCP
-      name: http
   selector:
     app: gitlab
