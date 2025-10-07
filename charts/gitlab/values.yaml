@@ -25,13 +25,16 @@ global:
   edition: ce
   hosts:
     domain: "gitlab.velesoft.ru"
-    https: true
+    https: false  # Отключаем HTTPS, так как используем NodePort и HTTP
+    nodeIp: "192.168.1.100"  # Замени на IP твоего узла k8s-main
   ingress:
-    enabled: true
+    enabled: false  # Отключаем Ingress, так как используем NodePort
     class: "nginx"
     annotations:
       kubernetes.io/ingress.class: nginx
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
   appConfig:
     objectStorage:
       enabled: true
@@ -64,5 +67,6 @@ persistence:
 initialRootPassword: "supersecret"
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 80
+  nodePort: 30088  # Внешний порт для доступа к GitLab

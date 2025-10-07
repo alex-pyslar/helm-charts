@@ -23,7 +23,7 @@ spec:
           env:
             - name: GITLAB_OMNIBUS_CONFIG
               value: |
-                external_url 'https://{{ .Values.global.hosts.domain }}'
+                external_url 'http://{{ .Values.global.hosts.nodeIp }}:{{ .Values.service.nodePort }}'
                 postgresql['enable'] = false
                 gitlab_rails['db_adapter'] = 'postgresql'
                 gitlab_rails['db_host'] = '{{ .Values.psql.host }}'
