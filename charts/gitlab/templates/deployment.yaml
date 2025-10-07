@@ -58,14 +58,14 @@ spec:
             httpGet:
               path: /users/sign_in
               port: 80
-            initialDelaySeconds: 60
+            initialDelaySeconds: 300
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /users/sign_in
               port: 80
-            initialDelaySeconds: 60
+            initialDelaySeconds: 300
             periodSeconds: 10
             timeoutSeconds: 5
           resources: {{ toYaml .Values.resources | nindent 12 }}
