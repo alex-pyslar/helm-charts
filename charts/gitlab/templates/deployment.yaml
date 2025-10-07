@@ -23,7 +23,7 @@ spec:
           env:
             - name: GITLAB_OMNIBUS_CONFIG
               value: |
-                external_url 'https://gitlab.velesoft.ru'
+                external_url 'http://10.66.66.11:30088'
                 postgresql['enable'] = false
                 gitlab_rails['db_adapter'] = 'postgresql'
                 gitlab_rails['db_host'] = '{{ .Values.psql.host }}'
