@@ -12,5 +12,10 @@ spec:
       nodePort: 30088
       protocol: TCP
       name: http
+    - port: 30088
+      targetPort: 30088
+      nodePort: 30088
+      protocol: TCP
+      name: http-alt
   selector:
     app: gitlab

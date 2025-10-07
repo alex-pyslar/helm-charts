@@ -21,6 +21,8 @@ spec:
           ports:
             - containerPort: 80
               name: http
+            - containerPort: 30088
+              name: http-alt
           env:
             - name: GITLAB_OMNIBUS_CONFIG
               value: |
