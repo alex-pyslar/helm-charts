@@ -26,7 +26,7 @@ global:
   hosts:
     domain: "gitlab.velesoft.ru"
     https: false  # Отключаем HTTPS, так как используем NodePort и HTTP
-    nodeIp: "192.168.1.100"  # Замени на IP твоего узла k8s-main
+    nodeIp: "10.66.66.11"  # Замени на IP твоего узла k8s-main
   ingress:
     enabled: false  # Отключаем Ingress, так как используем NodePort
     class: "nginx"
