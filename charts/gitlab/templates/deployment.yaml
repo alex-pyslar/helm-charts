@@ -20,6 +20,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 80
+              name: http
           env:
             - name: GITLAB_OMNIBUS_CONFIG
               value: |
@@ -53,6 +54,20 @@ spec:
                   'path_style' => true
                 }
                 gitlab_rails['initial_root_password'] = '{{ .Values.initialRootPassword }}'
+          livenessProbe:
+            httpGet:
+              path: /users/sign_in
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /users/sign_in
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources: {{ toYaml .Values.resources | nindent 12 }}
           volumeMounts:
             - name: gitlab-data
